@@ -1,0 +1,21 @@
+{
+  "name": "expo-ecommerce",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm install --prefix backend && npm install --prefix admin && npm run build --admin"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JianoFreo/expo-ecommerce.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JianoFreo/expo-ecommerce/issues"
+  },
+  "homepage": "https://github.com/JianoFreo/expo-ecommerce#readme"
+}
