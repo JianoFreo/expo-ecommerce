@@ -24,7 +24,6 @@ if (ENV.NODE_ENV === "production") {
     //we use:
     //path.join(__dirname, "admin", "dist")
 
-
     //sendFile() is an Express method used to send an actual file to the browser.
   });
 }
