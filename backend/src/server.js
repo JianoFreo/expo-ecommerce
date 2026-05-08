@@ -29,6 +29,7 @@ if (ENV.NODE_ENV === "production") {
     //sendFile() is an Express method used to send an actual file to the browser.
   });
 }
+
 await connectDB();
 app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);
