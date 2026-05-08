@@ -1,6 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { ENV } from './config/env.js';
+import { connectDB } from './config/db.js';
+
 
 const app = express();
 const __dirname = path.resolve();
@@ -27,9 +29,10 @@ if (ENV.NODE_ENV === "production") {
     //sendFile() is an Express method used to send an actual file to the browser.
   });
 }
-
+await connectDB();
 app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);
   console.log("NODE_ENV:", process.env.NODE_ENV);
   console.log("PORT:", process.env.PORT);
+  
 });
