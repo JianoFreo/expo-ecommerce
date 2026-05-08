@@ -2,10 +2,16 @@ import express from 'express';
 import path from 'path';
 import { ENV } from './config/env.js';
 import { connectDB } from './config/db.js';
-
+import { clerkMiddleware } from '@clerk/express';
 
 const app = express();
 const __dirname = path.resolve();
+
+
+//=================================middlewares=================================
+app.use(clerkMiddleware()); // Clerk middleware to handle authentication and user management// req.auth
+//adds auth objkect under the request object
+//=================================middlewares=================================
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is healthy' });
