@@ -4,7 +4,7 @@
 This step initializes the admin panel using Vite and React. You'll also learn what dependencies are needed and when to install them.
 
 ## Prerequisites
-- Ensure you're in the root `metricBI/` directory
+- Ensure you're in the root `expo-ecommerce/` directory
 - Node.js and npm are installed
 - Completed [Step 1](step-1.md) and [Step 2](step-2.md)
 

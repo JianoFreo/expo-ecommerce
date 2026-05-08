@@ -1,29 +1,46 @@
-install expresss and dotenv
-```bash
-npm install express dotenv
-```
-initialize react application
-```bash 
-cd admin
-```
-```bash 
-npm create vite@latest .
-```
-select react for freamwork and javascript for variant
+# expo-ecommerce Setup Index
 
-◇  Select a framework:
-│  React
-│
-◇  Select a variant:
-│  JavaScript
-│
-◇  Install with npm and start now?
-│  Yes
-│
-----
-initialize mobile application with expo-go
-```bash cd mobile
+Use the links below to follow the full setup flow for the project.
+
+## Setup Steps
+
+1. **[Step 1: Initialize Root Project](instructions/step-1.md)** - Create the folders and initialize the root `package.json`
+2. **[Step 2: Set up Backend](instructions/step-2.md)** - Install backend dependencies and nodemon
+3. **[Step 3: Set up Admin](instructions/step-3.md)** - Initialize the React + Vite admin app
+4. **[Step 4: Set up Mobile Application](instructions/step-4.md)** - Initialize the Expo mobile app
+5. **[Step 5: Configure Clerk Auth](instructions/step-5.md)** - Add Clerk keys and packages
+6. **[Step 6: Configure Inngest](instructions/step-6.md)** - Add background jobs and signing keys
+
+## Folder Structure
+
+The project should look like this:
+
+```text
+expo-ecommerce/
+├── backend/
+├── admin/
+├── mobile/
+├── instructions/
+├── README.md
+└── set-up.md
 ```
+
+## Dependency Timing
+
+- Install `express`, `dotenv`, `mongoose`, `mongodb`, and `nodemon` in `backend/`.
+- Run `npm run build` in `admin/` to generate `dist/` before deployment.
+- Install Expo packages in `mobile/`.
+- Add Clerk and Inngest packages only when you reach Steps 5 and 6.
+
+## Quick Commands
+
 ```bash
-npx create-expo-app@latest .
+cd backend
+npm run dev
+
+cd admin
+npm run dev
+
+cd mobile
+npm start
 ```
