@@ -35,5 +35,4 @@ app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);
   console.log("NODE_ENV:", process.env.NODE_ENV);
   console.log("PORT:", process.env.PORT);
-  
 });
