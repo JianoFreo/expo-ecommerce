@@ -1,34 +1,69 @@
-install cloudinary
+# Step 7: Configure Cloudinary
 
-cloudinary is a cloud-based service that provides an end-to-end image and video management solution, including uploads, storage, manipulations, optimizations, and delivery. It offers a powerful API and a user-friendly dashboard for developers and businesses to manage their media assets efficiently.
+## Overview
+Cloudinary is used for image and video uploads, storage, transformations, and CDN delivery.
 
+Since this project uploads product images from the backend, configure Cloudinary in the backend service.
 
-because we will be uploading images to cloudinary from our backend, we need to install the cloudinary package in our backend project.
+## 1. Create Cloudinary credentials
 
+After logging in to Cloudinary:
+- Go to **Settings -> API Keys**
+- Generate or copy your **API Key** and **API Secret**
+- Go to **Home** and copy your **Cloud Name**
 
-aftter logging in cloudinary , go to setting - api key - genereate a new api key and secret and add it to your backend .env file as shown below
-for the cloud name -- go to home and you can see the cloud name under product envirenment section
-then paste the following in your backend/.env file as CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET and CLOUDINARY_CLOUD_NAME
+## 2. Add Cloudinary variables to backend `.env`
 
+In `backend/.env`, add:
 
+```env
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+```
 
-make a cloudinary file under config folder
-
-then install cloudinary package in the backend
+## 3. Install Cloudinary package in backend
 
 ```bash
 cd backend
-```
-
-```bash 
 npm install cloudinary@2.8.0
 ```
-or you can just install them withouit specifying the version and it will install the latest version of cloudinary package
+
+You can also install the latest version:
 
 ```bash
 npm install cloudinary
 ```
 
-then add the following code to the cloudinary.js file we created under config folder
+## 4. Create `backend/src/config/cloudinary.js`
+
+Create a Cloudinary config file under `backend/src/config/` and add:
 
 ```javascript
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export default cloudinary;
+```
+
+## 5. Use in backend controllers/services
+
+Import and upload files from your controllers:
+
+```javascript
+import cloudinary from '../config/cloudinary.js';
+
+const result = await cloudinary.uploader.upload(imagePath, {
+	folder: 'expo-ecommerce/products',
+});
+```
+
+## Notes
+- Keep Cloudinary secrets in `backend/.env` only.
+- Never expose `CLOUDINARY_API_SECRET` in admin or mobile apps.
+- Cloudinary setup should be done after backend setup (Step 2).

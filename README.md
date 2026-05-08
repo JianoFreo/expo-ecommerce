@@ -36,6 +36,7 @@ mkdir -p backend admin mobile instructions
 4. **[Step 4: Set up Mobile Application](instructions/step-4.md)** - Initialize the Expo mobile app
 5. **[Step 5: Configure Clerk Auth](instructions/step-5.md)** - Add authentication keys and install Clerk packages
 6. **[Step 6: Configure Inngest](instructions/step-6.md)** - Add background-job support and signing keys
+7. **[Step 7: Configure Cloudinary](instructions/step-7.md)** - Add media upload credentials and backend Cloudinary config
 
 ## When to Install Dependencies
 
@@ -45,11 +46,13 @@ Install these inside `backend/` when you are working on the API:
 ```bash
 npm install express dotenv
 npm install mongoose mongodb
+npm install cloudinary
 npm install --save-dev nodemon
 ```
 
 - `express` and `dotenv` are needed for almost every backend setup.
 - `mongoose` and `mongodb` are needed when the backend connects to MongoDB.
+- `cloudinary` is needed when uploading product images from the backend.
 - `nodemon` is for development only.
 
 ### Admin
@@ -95,4 +98,5 @@ npm start
 - Keep backend-only secrets in `backend/.env`.
 - Keep React admin environment variables in `admin/.env`.
 - Keep Expo public environment variables in `mobile/.env`.
+- Keep Cloudinary credentials in `backend/.env` only.
 - If you deploy the admin app, build it first so the `dist/` folder exists.
