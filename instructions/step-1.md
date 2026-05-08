@@ -1,50 +1,50 @@
 # Step 1: Set up the folders and initialize the package.json from the root
 
 ## Overview
-This step involves creating the necessary folder structure for the metricBI project and initializing the root-level `package.json`.
+This step involves creating the necessary folder structure for the `expo-ecommerce` project and initializing the root-level `package.json`.
 
 ## Steps
 
 ### 1. Create the project structure
 Ensure you have the following folder structure:
 ```
-metricBI/
+expo-ecommerce/
 ├── backend/
 ├── admin/
-└── application/
+└── mobile/
 ```
 
 **On Windows (PowerShell):**
 ```bash
-mkdir backend, admin, application
+mkdir backend, admin, mobile
 ```
 
 **On macOS/Linux:**
 ```bash
-mkdir -p backend admin application
+mkdir -p backend admin mobile
 ```
 
 ### 2. Initialize root package.json
-From the root directory (`metricBI`), run:
+From the root directory (`expo-ecommerce`), run:
 ```bash
 npm init -y
 ```
 
-This creates a root `package.json` that will manage shared scripts and dependencies across the monorepo.
+This creates a root `package.json` that will manage shared scripts and dependencies across the project.
 
 ### 3. Example root package.json structure
 After running `npm init -y`, your root `package.json` might look like:
 ```json
 {
-  "name": "metricbi",
+  "name": "expo-ecommerce",
   "version": "1.0.0",
-  "description": "MetricBI - A complete application with backend, admin panel, and mobile app",
+  "description": "expo-ecommerce - A complete application with backend, admin panel, and mobile app",
   "main": "index.js",
   "scripts": {
     "dev": "npm run dev --prefix backend",
     "start": "npm start --prefix backend",
     "admin": "npm run dev --prefix admin",
-    "mobile": "npm start --prefix application"
+    "mobile": "npm start --prefix mobile"
   },
   "dependencies": {},
   "devDependencies": {}
@@ -80,7 +80,7 @@ npm install -D husky lint-staged
 - **vite**: Build tool and dev server
 - **tailwindcss**: CSS utility framework (optional)
 
-### Mobile Dependencies (installed in application/)
+### Mobile Dependencies (installed in mobile/)
 - **expo**: Mobile app framework
 - **react-native**: Mobile UI library
 - **expo-go**: Development client
@@ -92,7 +92,7 @@ npm install -D husky lint-staged
 | Step 1 (current) | Root package.json | Root | `npm init -y` |
 | Step 2 | Express, dotenv, mongoose | `backend/` | `npm install express dotenv mongoose` |
 | Step 3 | React, Vite | `admin/` | `npm create vite@latest .` |
-| Step 4 | Expo, React Native | `application/` | `npx create-expo-app@latest .` |
+| Step 4 | Expo, React Native | `mobile/` | `npx create-expo-app@latest .` |
 
 ## What's Next?
 After completing Step 1, proceed to [Step 2: Set up the Backend](step-2.md) to install backend dependencies.

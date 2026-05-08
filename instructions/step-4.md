@@ -4,16 +4,16 @@
 This step initializes the mobile application using Expo and React Native.
 
 ## Prerequisites
-- Ensure you're in the root `metricBI/` directory
+- Ensure you're in the root `expo-ecommerce/` directory
 - Node.js and npm are installed
 - Expo Go app installed on your mobile device (available on [iOS App Store](https://apps.apple.com/us/app/expo-go/id1054059026) and [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent))
 - Completed [Step 1](step-1.md), [Step 2](step-2.md), and [Step 3](step-3.md)
 
 ## Steps
 
-### 1. Navigate to application folder
+### 1. Navigate to mobile folder
 ```bash
-cd application
+cd mobile
 ```
 
 ### 2. Create Expo project
@@ -42,7 +42,7 @@ Expo will automatically install core mobile dependencies:
 
 ## Project Structure After Setup
 ```
-application/
+mobile/
 ├── package.json
 ├── package-lock.json
 ├── app.json
@@ -192,7 +192,7 @@ npx eas build --platform android --profile preview
 
 ## Environment Variables
 
-Create an `.env` file in the application folder:
+Create an `.env` file in the mobile folder:
 
 ```env
 EXPO_PUBLIC_API_URL=http://your-backend-ip:3000/api
@@ -236,6 +236,6 @@ npm start -- --clear
 Your project structure is now complete! You can now:
 - Develop the backend in `backend/`
 - Build the admin panel in `admin/`
-- Create the mobile app in `application/`
+- Create the mobile app in `mobile/`
 
 Start with the backend development and connect it to the admin and mobile apps.
