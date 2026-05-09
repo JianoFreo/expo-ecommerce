@@ -10,6 +10,8 @@ Use the links below to follow the full setup flow for the project.
 4. **[Step 4: Set up Mobile Application](instructions/step-4.md)** - Initialize the Expo mobile app
 5. **[Step 5: Configure Clerk Auth](instructions/step-5.md)** - Add Clerk keys and packages
 6. **[Step 6: Configure Inngest](instructions/step-6.md)** - Add background jobs and signing keys
+7. **[Step 7: Configure Cloudinary](instructions/step-7.md)** - Add Cloudinary credentials and backend config
+8. **[Step 8: Configure Clerk and Webhooks](instructions/step-8.md)** - Connect the admin app to Clerk and sync users with Inngest
 
 ## Folder Structure
 
@@ -30,7 +32,7 @@ expo-ecommerce/
 - Install `express`, `dotenv`, `mongoose`, `mongodb`, and `nodemon` in `backend/`.
 - Run `npm run build` in `admin/` to generate `dist/` before deployment.
 - Install Expo packages in `mobile/`.
-- Add Clerk and Inngest packages only when you reach Steps 5 and 6.
+- Add Clerk, Inngest, and Cloudinary packages when you reach Steps 5 through 8.
 
 ## Quick Commands
 
