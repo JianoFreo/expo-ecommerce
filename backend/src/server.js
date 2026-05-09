@@ -2,10 +2,16 @@ import express from 'express';
 import path from 'path';
 import { ENV } from './config/env.js';
 import { connectDB } from './config/db.js';
-
+import { clerkMiddleware } from '@clerk/express';
 
 const app = express();
 const __dirname = path.resolve();
+
+
+//=================================middlewares=================================
+app.use(clerkMiddleware()); // Clerk middleware to handle authentication and user management// req.auth
+//adds auth objkect under the request object
+//=================================middlewares=================================
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is healthy' });
@@ -29,10 +35,10 @@ if (ENV.NODE_ENV === "production") {
     //sendFile() is an Express method used to send an actual file to the browser.
   });
 }
+
 await connectDB();
 app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);
   console.log("NODE_ENV:", process.env.NODE_ENV);
   console.log("PORT:", process.env.PORT);
-  
 });
