@@ -37,6 +37,7 @@ mkdir -p backend admin mobile instructions
 5. **[Step 5: Configure Clerk Auth](instructions/step-5.md)** - Add authentication keys and install Clerk packages
 6. **[Step 6: Configure Inngest](instructions/step-6.md)** - Add background-job support and signing keys
 7. **[Step 7: Configure Cloudinary](instructions/step-7.md)** - Add media upload credentials and backend Cloudinary config
+8. **[Step 8: Configure Clerk and Webhooks](instructions/step-8.md)** - Connect the admin app to Clerk and sync users with Inngest
 
 ## When to Install Dependencies
 
@@ -100,3 +101,4 @@ npm start
 - Keep Expo public environment variables in `mobile/.env`.
 - Keep Cloudinary credentials in `backend/.env` only.
 - If you deploy the admin app, build it first so the `dist/` folder exists.
+- Clerk provider setup belongs in the admin app, while webhook and sync logic belongs in the backend.
