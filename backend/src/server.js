@@ -42,6 +42,6 @@ const startServer = async () => {
     console.log("Server is up and running");
   });
 };
-I
+
 
 startServer();
