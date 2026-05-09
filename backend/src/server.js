@@ -4,13 +4,22 @@ import { ENV } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { clerkMiddleware } from '@clerk/express';
 
+import { serve } from 'inngest/express';
+import { functions, inngest } from './config/inggest.js';
+
+
 const app = express();
 const __dirname = path.resolve();
 
-
+/* `app.use(express.json())` is setting up middleware in Express to parse incoming requests with JSON
+payloads. This middleware will parse the request body and make it available under `req.body` in your
+route handlers. This is commonly used when working with APIs that send data in JSON format. */
+app.use(express.json())
 //=================================middlewares=================================
 app.use(clerkMiddleware()); // Clerk middleware to handle authentication and user management// req.auth
 //adds auth objkect under the request object
+
+app.use("/api/inngest", serve({ client: inngest, functions }));
 //=================================middlewares=================================
 
 app.get('/api/health', (req, res) => {
