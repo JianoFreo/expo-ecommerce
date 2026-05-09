@@ -46,3 +46,22 @@ createRoot(document.getElementById("root")).render(
 );
 
 ```
+
+we neeed to use inggest as a webhook to gather the data on the clerk and put it on the mongoDb database 
+
+
+go to clerk dashboard and configure click on the webhooks and add a new webhook on the developers dropdown
+
+select "Add an Endpoint"
+selct inngest
+
+press connect to inngest
+
+then scrooll to the bottom and click on "Create Webhook"
+
+go to subscribed events and select "User Created" and "User Updated"
+
+go to inggest.com and select docs and follow the instrructions to install inngest in the backend folder
+cd backend
+
+npm install inngest
