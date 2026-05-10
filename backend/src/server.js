@@ -35,14 +35,6 @@ app.use("/api/admin", adminRoutes)
 
 
 
-
-
-
-
-
-
-
-
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is healthy' });
   console.log("Health check endpoint hit");
