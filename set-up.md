@@ -12,6 +12,7 @@ Use the links below to follow the full setup flow for the project.
 6. **[Step 6: Configure Inngest](instructions/step-6-configure-inngest-webhooks.md)** - Add background jobs and signing keys
 7. **[Step 7: Configure Cloudinary](instructions/step-7-configure-cloudinary-uploads.md)** - Add Cloudinary credentials and backend config
 8. **[Step 8: Configure Clerk and Webhooks](instructions/step-8-connect-clerk-and-inngest-sync.md)** - Connect the admin app to Clerk and sync users with Inngest
+9. **[Step 9: Configure Models, Routes, and Middleware](instructions/step-9-configure-models-routes-middleware.md)** - Set up Mongoose models, admin API routes, auth middleware, and multer file uploads
 
 ## Folder Structure
 
