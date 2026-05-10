@@ -11,7 +11,7 @@ export const syncUser = inngest.createFunction(
     },
 
     async ({ event }) => {
-         // The event variable comes from Inngest itself.
+        // The event variable comes from Inngest itself.
         // When this runs:
         // inngest.createFunction(...)
         // Inngest automatically calls your function and passes an object containing the event data.

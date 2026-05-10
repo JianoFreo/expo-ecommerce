@@ -171,7 +171,7 @@ Then create the backend files in this order:
 1. `backend/src/config/env.js`
 2. `backend/src/config/db.js`
 3. `backend/src/models/user.model.js`
-4. `backend/src/config/inggest.js`
+4. `backend/src/config/inngest.js`
 5. `backend/src/server.js`
 6. `backend/src/config/cloudinary.js`
 
@@ -180,7 +180,7 @@ How the backend is wired in this repo:
 - `env.js` loads environment variables such as `DB_URL`, `CLERK_SECRET_KEY`, `INNGEST_SIGNING_KEY`, and Cloudinary keys
 - `db.js` connects to MongoDB
 - `user.model.js` stores Clerk-linked users, addresses, and wishlist data
-- `inggest.js` defines the Clerk user sync functions for `clerk/user.created` and `clerk/user.deleted`
+- `inngest.js` defines the Clerk user sync functions for `clerk/user.created` and `clerk/user.deleted`
 - `server.js` mounts Express middleware, Clerk middleware, and the Inngest endpoint
 - `cloudinary.js` configures media uploads
 
@@ -296,7 +296,7 @@ INNGEST_SIGNING_KEY=your_inngest_signing_key
 
 The backend uses Inngest in this sequence:
 
-1. `backend/src/config/inggest.js` defines the user sync jobs
+1. `backend/src/config/inngest.js` defines the user sync jobs
 2. `backend/src/server.js` exposes them through `serve({ client: inngest, functions })`
 3. Clerk webhooks send user events to Inngest
 4. Inngest writes the data into MongoDB through the `User` model

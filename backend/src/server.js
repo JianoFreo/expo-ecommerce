@@ -5,7 +5,7 @@ import { connectDB } from './config/db.js';
 import { clerkMiddleware } from '@clerk/express';
 
 import { serve } from 'inngest/express';
-import { functions, inngest } from './config/inggest.js';
+import { functions, inngest } from './config/inngest.js';
 
 
 const app = express();

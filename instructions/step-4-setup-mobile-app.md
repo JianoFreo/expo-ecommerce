@@ -7,7 +7,7 @@ This step initializes the mobile application using Expo and React Native.
 - Ensure you're in the root `expo-ecommerce/` directory
 - Node.js and npm are installed
 - Expo Go app installed on your mobile device (available on [iOS App Store](https://apps.apple.com/us/app/expo-go/id1054059026) and [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent))
-- Completed [Step 1](step-1.md), [Step 2](step-2.md), and [Step 3](step-3.md)
+- Completed [Step 1](step-1-initialize-root-project.md), [Step 2](step-2-setup-backend-api.md), and [Step 3](step-3-setup-admin-dashboard.md)
 
 ## Steps
 

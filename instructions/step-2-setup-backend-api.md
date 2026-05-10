@@ -6,6 +6,7 @@ This step installs and configures the backend application with Express, dotenv, 
 ## Prerequisites
 - Ensure you're in the `backend/` directory
 - Node.js and npm are installed
+- Completed [Step 1: Initialize Root Project](step-1-initialize-root-project.md)
 
 ## Steps
 
