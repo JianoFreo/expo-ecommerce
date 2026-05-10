@@ -19,9 +19,12 @@ export const protectRoute = [
             if (!clerkId) return res.status(401).json({ message: "Unauthorized -  invalid token" });
 
             const user = await User.findOne({ clerkId }); //"Does this authenticated user exist in OUR database?"
+            // Find a user whose database field "clerkId"
+            // matches the variable value stored in clerkId
+            // It is calling the local variable: const clerkId = req.auth.userId;
             if (!user) return res.status(404).json({ message: "User not found - user not found" });
 
-            req.user = user;
+            req.user = user; //This is a property you manually attach to the request object:
             // "If the user exists, attach the user object to the 
             // request and move on to the next middleware or route handler."
             next();
@@ -30,3 +33,16 @@ export const protectRoute = [
             return res.status(500).json({ message: "Internal server error" });
         }
     }]
+export const adminOnly = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized - user not authenticated" });
+    }
+    if (req.user.email !== ENV.ADMIN_EMAIL) { 
+        // that’s why adminOnly must be used AFTER protectRoute.
+        // if the protectRoute middleware is not used before adminOnly, 
+        // then req.user will be undefined and 
+        // we will get an error when we try to access req.user.email.
+        return res.status(403).json({ message: "Forbidden - admin access only" });
+    }
+    next(); // mean user is admin / authorized
+}
