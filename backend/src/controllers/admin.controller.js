@@ -1,4 +1,6 @@
 import cloudinary from '../config/cloudinary.js';
+import { Product } from '../models/product.model.js';
+
 export async function createProduct(req, res) {
     try {
         const { name, description, price, stock, category } = req.body;
@@ -20,7 +22,20 @@ export async function createProduct(req, res) {
         const uploadResults = await Promise.all(uploadPromises);
         // secure_url is the url of the uploaded image in cloudinary
         const imageUrls = uploadResults.map((result) => result.secure_url);
+
+        const product = new Product({
+            name,
+            description,
+            price: parseFloat(price),
+            stock: parseInt(stock),
+            category,
+            images: imageUrls
+        });
+
+        res.status(201).json({ message: "Product created successfully", product });
     } catch (error) {
+        console.error("Error creating product:", error);
+        res.status(500).json({ message: "Internal server error"});
     }
 }
 
