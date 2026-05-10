@@ -80,7 +80,7 @@ npm install inngest
 
 ## Backend flow
 
-The backend already exposes the Inngest handler in `backend/src/server.js` and the user sync functions in `backend/src/config/inggest.js`.
+The backend already exposes the Inngest handler in `backend/src/server.js` and the user sync functions in `backend/src/config/inngest.js`.
 
 When Clerk sends a webhook event to Inngest:
 - `clerk/user.created` creates a user record in MongoDB
@@ -105,7 +105,7 @@ Clerk automatically sends a `clerk/user.created` event to your Inngest endpoint.
 
 ### Step 3: Inngest Receives and Extracts the Data
 
-The `syncUser` function in `backend/src/config/inggest.js` listens for this event and runs automatically:
+The `syncUser` function in `backend/src/config/inngest.js` listens for this event and runs automatically:
 
 ```javascript
 export const syncUser = inngest.createFunction(
