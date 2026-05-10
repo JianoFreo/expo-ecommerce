@@ -24,6 +24,7 @@ app.use("/api/inngest", serve({ client: inngest, functions }));
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is healthy' });
+  console.log("Health check endpoint hit");
 });
 
 // make our app ready for deployment
