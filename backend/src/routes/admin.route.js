@@ -21,5 +21,7 @@ router.post("/products",upload.array("images", 3), createProduct); // each produ
 router.get("/products", getAllProducts);
 router.put("/products/:id",upload.array("images", 3), updateProduct);
 
+router.get("/orders", getAllOrders);
+
 
 export default router;
