@@ -3,7 +3,9 @@ import { createProduct } from "../controllers/admin.controller.js";
 import {
     createProduct,
     getAllProducts,
-    updateProduct
+    updateProduct,
+    getAllOrders,
+    updateOrderStatus
 } from "../controllers/admin.controller.js";
 import {
     adminOnly,
@@ -24,5 +26,7 @@ router.put("/products/:id",upload.array("images", 3), updateProduct);
 router.get("/orders", getAllOrders);
 router.patch("/orders/:orderId/status", updateOrderStatus); //pending -> shipped -> delivered
 
+//PUT : update the whole resource, full resource replacement
+//PATCH: update a part of the resource,  partial resource update, specific part of the resource
 
 export default router;
