@@ -1,5 +1,6 @@
 import cloudinary from '../config/cloudinary.js';
 import { Product } from '../models/product.model.js';
+import { Order } from '../models/order.model.js';
 
 export async function createProduct(req, res) {
     try {
@@ -88,6 +89,16 @@ export async function updateProduct(req, res) {
 
     } catch (error) {
         console.error("Error updating product:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function getAllOrders(req, res) {
+    try {
+        const orders = await Order.find().populate("user", "name email")
+        res.status(200).json({ orders });
+    } catch (error) {
+        console.error("Error fetching orders:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
