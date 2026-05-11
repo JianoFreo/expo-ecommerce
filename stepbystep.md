@@ -327,7 +327,57 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 Then create `backend/src/config/cloudinary.js` and connect the config to your controllers or services.
 
-## 9. Run the Project
+## 9. Configure Models, Routes, and Admin Middleware
+
+After Cloudinary setup, install Multer for file upload handling:
+
+```bash
+cd ../backend
+npm install multer
+```
+
+Create the database models in `backend/src/models/`:
+
+- `user.model.js` - User schema with Clerk integration (already created)
+- `products.model.js` - Product schema with multiple images
+- `cart.model.js` - Shopping cart
+- `order.model.js` - Orders
+- `review.model.js` - Product reviews
+
+Create authentication middleware in `backend/src/middleware/`:
+
+- `auth.middleware.js` - `protectRoute` (Clerk auth + database check) and `adminOnly` (email-based admin role)
+- `multer.middleware.js` - Configure multer for image uploads (5MB limit, max 3 images per request)
+
+Add admin email to `backend/.env`:
+
+```env
+ADMIN_EMAIL=your-admin-email@example.com
+```
+
+Create API routes in `backend/src/routes/`:
+
+- `admin.route.js` - Routes for product management (CREATE, READ, UPDATE protected by `protectRoute` and `adminOnly`)
+
+Create controllers in `backend/src/controllers/`:
+
+- `admin.controller.js` - Handle product creation (file uploads via Multer to Cloudinary), product listing, and updates
+
+Mount the routes in `backend/src/server.js`:
+
+```javascript
+import adminRoutes from './routes/admin.route.js';
+app.use("/api/admin", adminRoutes);
+```
+
+Key points:
+
+- Use `req.user` (attached by `protectRoute`) to get the authenticated user
+- Use `req.user.email` to check admin access in `adminOnly` middleware
+- Use Multer to save file temporarily, then upload to Cloudinary
+- Store Cloudinary `secure_url` in the database, not the local file path
+
+## 10. Run the Project
 
 After setup, start each part in this order:
 
@@ -355,4 +405,5 @@ If you want the shortest correct order, use this:
 6. Connect Clerk auth in admin and backend
 7. Connect Inngest webhooks for user sync
 8. Configure Cloudinary uploads
-9. Run backend, admin, and mobile
+9. Configure models, routes, auth middleware, and Multer
+10. Run backend, admin, and mobile
