@@ -106,3 +106,32 @@ export async function getAllOrders(req, res) {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export async function updateOrderStatus(req, res) {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        if (!["pending", "shipped", "delivered"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status value" });
+        }
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        order.status = status;
+        if (status === "shipped" && !order.shippedAt) {
+            order.shippedAt = new Date();
+        }   
+        if (status === "delivered" && !order.deliveredAt) {
+            order.deliveredAt = new Date();
+        }
+        await order.save();
+        res.status(200).json({ message: "Order status updated successfully", order });
+    
+            
+    } catch (error) {
+        console.error("Error in updateOrderStatus controller:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }   
+}
