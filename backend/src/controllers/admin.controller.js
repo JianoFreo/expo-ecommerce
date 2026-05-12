@@ -95,7 +95,10 @@ export async function updateProduct(req, res) {
 
 export async function getAllOrders(req, res) {
     try {
-        const orders = await Order.find().populate("user", "name email")
+        const orders = await (await Order.find().populate("user", "name email"))
+        .populate("user", "name email") // is used to populate the user field in the order with the name and email of the user who placed the order.
+        .populate("products.product", "name price") // is used to populate the product field in the order with the name and price of the product that was ordered.
+        
         res.status(200).json({ orders });
     } catch (error) {
         console.error("Error fetching orders:", error);
