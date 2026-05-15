@@ -5,7 +5,9 @@ import {
     getAllProducts,
     updateProduct,
     getAllOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    getAllCustomers,
+    getDashboardStats
 } from "../controllers/admin.controller.js";
 import {
     adminOnly,
@@ -30,6 +32,8 @@ router.patch("/orders/:orderId/status", updateOrderStatus); //pending -> shipped
 //PATCH: update a part of the resource,  partial resource update, specific part of the resource
 
 router.get("/customers", getAllCustomers);
+
+router.get("/stats", getDashboardStats);
 
 
 
