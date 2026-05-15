@@ -124,6 +124,14 @@ export async function getAllOrders(req, res) {
 export async function updateOrderStatus(req, res) {
     try {
         const { orderId } = req.params;
+// app.get("/orders/:orderId", (req, res) => {
+//   const { orderId } = req.params;
+
+//   res.json({
+//     message: "Order fetched",
+//     orderId
+//   });
+// });
         const { status } = req.body;
 
         if (!["pending", "shipped", "delivered"].includes(status)) {
