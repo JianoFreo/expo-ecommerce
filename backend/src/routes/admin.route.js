@@ -29,4 +29,8 @@ router.patch("/orders/:orderId/status", updateOrderStatus); //pending -> shipped
 //PUT : update the whole resource, full resource replacement
 //PATCH: update a part of the resource,  partial resource update, specific part of the resource
 
+router.get("/customers", getAllCustomers);
+
+
+
 export default router;

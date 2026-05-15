@@ -97,6 +97,8 @@ export async function getAllOrders(req, res) {
     try {
         const orders = await (await Order.find())
             .populate("user", "name email") // is used to populate the user field in the order with the name and email of the user who placed the order.
+            //“Take the user ObjectId in the order, go to the User collection, find that document, and only return name and email.”
+            //SELECT name, email FROM users WHERE _id = order.user
             .populate("products.product", "name price") // is used to populate the product field in the order with the name and price of the product that was ordered.
             .sort({ createdAt: -1 }); // -1 means sort in descending order: most recent order first
         res.status(200).json({ orders });
@@ -106,6 +108,18 @@ export async function getAllOrders(req, res) {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+// SELECT 
+//     o.*,
+//     u.name AS user_name,
+//     u.email AS user_email,
+//     p.name AS product_name,
+//     p.price AS product_price
+// FROM orders o
+// JOIN users u ON o.user_id = u.id
+// JOIN order_items oi ON oi.order_id = o.id
+// JOIN products p ON oi.product_id = p.id
+// ORDER BY o.created_at DESC;
 
 export async function updateOrderStatus(req, res) {
     try {
@@ -122,16 +136,16 @@ export async function updateOrderStatus(req, res) {
         order.status = status;
         if (status === "shipped" && !order.shippedAt) {
             order.shippedAt = new Date();
-        }   
+        }
         if (status === "delivered" && !order.deliveredAt) {
             order.deliveredAt = new Date();
         }
         await order.save();
         res.status(200).json({ message: "Order status updated successfully", order });
-    
-            
+
+
     } catch (error) {
         console.error("Error in updateOrderStatus controller:", error);
         res.status(500).json({ message: "Internal server error" });
-    }   
+    }
 }
