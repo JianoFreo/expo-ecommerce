@@ -35,6 +35,7 @@ app.use("/api/admin", adminRoutes)
 
 
 
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is healthy' });
   console.log("Health check endpoint hit");
@@ -50,7 +51,7 @@ if (ENV.NODE_ENV === "production") {
   // “Serve files from this folder directly to the browser.”
 
 
-  app.get("/{*any}", (req, res) => { // if its on any routes exept api routes
+  app.get("/{*any}", (_, res) => { // if its on any routes exept api routes
     res.sendFile(path.join(__dirname, "../admin/dist", "index.html"));
     //path.join is used to join the path of the dist folder and index.html file
     //Instead of:
@@ -65,7 +66,8 @@ if (ENV.NODE_ENV === "production") {
 const startServer = async () => {
   await connectDB();
   app.listen(ENV.PORT, () => {
-    console.log("Server is up and running");
+    console.log(`Server is up and running on http://localhost:${ENV.PORT}`);
+    console.log("NODE_ENV:", ENV.NODE_ENV);
   });
 };
 
