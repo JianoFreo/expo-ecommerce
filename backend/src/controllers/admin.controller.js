@@ -99,7 +99,7 @@ export async function getAllOrders(req, res) {
             .populate("user", "name email") // is used to populate the user field in the order with the name and email of the user who placed the order.
             //“Take the user ObjectId in the order, go to the User collection, find that document, and only return name and email.”
             //SELECT name, email FROM users WHERE _id = order.user
-            .populate("products.product", "name price") // is used to populate the product field in the order with the name and price of the product that was ordered.
+            .populate("orderItems.product", "name price") // is used to populate the product field in the order with the name and price of the product that was ordered.
             .sort({ createdAt: -1 }); // -1 means sort in descending order: most recent order first
         res.status(200).json({ orders });
     }
