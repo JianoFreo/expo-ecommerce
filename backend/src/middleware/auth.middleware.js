@@ -1,6 +1,6 @@
 import { requireAuth } from "@clerk/clerk-sdk-node";
 import { User } from "../models/user.model.js";
-import { ENV } from "../config/env.config.js";
+import { ENV } from "../config/env.js";
 
 // clerk and JWT are both authentication methods. 
 // Clerk is a third-party service that provides user authentication and management, 
