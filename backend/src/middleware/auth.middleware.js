@@ -11,7 +11,12 @@ import { ENV } from "../config/env.js";
 // The `protectRoute` middleware checks if the user is authenticated using Clerk and then 
 // verifies if the user exists in our database before allowing access to the protected route.
 
-export const protectRoute = [
+export const protectRoute = [ ///============================important : is is the function that builds req.user object =====================================================
+    /* `requireAuth()` is a middleware function provided by Clerk that is used for authentication in
+    the context of this code. When `requireAuth()` is called within a route handler, it checks if
+    the incoming request is authenticated. If the request is authenticated, it allows the request to
+    proceed to the next middleware or route handler. If the request is not authenticated, it
+    typically responds with a 401 status code indicating unauthorized access. */
     requireAuth(),
     async (req, res, next) => {
         try {
@@ -24,7 +29,8 @@ export const protectRoute = [
             // It is calling the local variable: const clerkId = req.auth.userId;
             if (!user) return res.status(404).json({ message: "User not found - user not found" });
 
-            req.user = user; //This is a property you manually attach to the request object:
+            req.user = user; 
+            //This is a property you manually attach to the request object:
             // "If the user exists, attach the user object to the 
             // request and move on to the next middleware or route handler."
             next();

@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import {
+    adminOnly,
+    protectRoute
+} from "../middleware/auth.middleware.js";
+import {
     createProduct,
     getAllProducts,
     updateProduct,
@@ -9,10 +13,6 @@ import {
     getAllCustomers,
     getDashboardStats
 } from "../controllers/admin.controller.js";
-import {
-    adminOnly,
-    protectRoute
-} from "../middleware/auth.middleware.js";
 
 
 
