@@ -69,8 +69,8 @@ export async function updateProduct(req, res) {
 
         if (name) product.name = name;
         if (description) product.description = description;
-        if (price) product.price = parseFloat(price);
-        if (stock) product.stock = parseInt(stock);
+        if (price !== undefined) product.price = parseFloat(price); // if price is 0, it will be treated as falsy value, so we need to check if it is undefined instead of just checking if it is truthy
+        if (stock !== undefined) product.stock = parseInt(stock);
         if (category) product.category = category;
 
         //handle image updates if there are any new images uploaded

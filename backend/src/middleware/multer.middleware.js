@@ -1,34 +1,15 @@
 import multer from 'multer';
 import path from "path"
 
+
 const storage = multer.diskStorage({
+    /* The `filename` function in the multer disk storage configuration is responsible for generating a
+    unique filename for the uploaded file. Here's a breakdown of what it does: */
     filename: (req, file, cb) => {
-        // 1. req
-        // The Express request object
-        // Same req you use in routes
-        // Contains things like:
-        // req.body
-        // req.user
-        // headers, etc.
-
-        // 2. file
-        // This is the uploaded file metadata object from Multer.
-
-        // {
-        //   fieldname: 'image',
-        //   originalname: 'cat.png',
-        //   encoding: '7bit',
-        //   mimetype: 'image/png',
-        //   size: 123456
-        // }
-        // file.originalname → original file name uploaded by user
-
-        // 3. cb (callback)
-        // This is how you return the filename to Multer.
-        // Format: cb(error, filename)
-        // First argument → error (use null if no error)
-        // Second argument → the final filename to save
-        cb(null, `${Date.now()}-${file.originalname}`)
+        const ext = path.extname(file.originalname || "").toLowerCase();
+        const safeExt = [".jpeg", ".jpg", ".png", ".webp"].includes(ext) ? ext : "";
+        const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        cb(null, `${unique}${safeExt}`);
     }
 });
 
