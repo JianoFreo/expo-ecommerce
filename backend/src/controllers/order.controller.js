@@ -62,10 +62,11 @@ export async function getUserOrders(req, res) {
 
         const ordersWithReviewStatus = await Promise.all(
             orders.map(async (order) => {
-                const review = await Review.findOne({ orderId: order._id });
                 return {
-                    ...order.toObject(),
-                    hasReviewed: !!review,
+                    ...order.toObject(), 
+                    // toObject is used to convert the Mongoose document into a plain JavaScript object,
+                    //  which allows us to use the spread operator to add new properties
+                    hasReviewed: reviewedOrderIds.has(order._id.toString()), // returns True or false
                 };
             })
         );
