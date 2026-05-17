@@ -5,7 +5,10 @@ export async function getCart(req, res) {
     try {
         let cart = await Cart.findOne({ clerkId: req.user.clerkId }).populate("items.product");
 
-        if (!cart) {
+        if (!cart) { 
+            // we have create ebecause even if we are just getting the cart,
+            // if we dont have anything on the cart, lets make one
+
             const user = req.user;
 
             cart = await Cart.create({
@@ -24,7 +27,7 @@ export async function getCart(req, res) {
 
 export async function addToCart(req, res) {
     try {
-        const { productId, quantity = 1 } = req.body;
+        const { productId, quantity = 1 } = req.body; // by default, quantity is 1
 
         // validate product exists and has stock
         const product = await Product.findById(productId);
@@ -39,7 +42,7 @@ export async function addToCart(req, res) {
         let cart = await Cart.findOne({ clerkId: req.user.clerkId });
 
         if (!cart) { 
-            // we have creat ebecause even if we are just getting the cart,
+            // we have create ebecause even if we are just getting the cart,
             // if we dont have anything on the cart, lets make one
 
             const user = req.user;
