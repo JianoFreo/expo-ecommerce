@@ -3,7 +3,7 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 import {
     getCart,
     addToCart,
-    updateCart,
+    updateCartItem,
     removeFromCart,
     clearCart
 } from "../controllers/cart.controller.js";
@@ -14,7 +14,7 @@ router.use(protectRoute) // middleware
 
 router.get("/", getCart)
 router.put("/", addToCart)
-router.put("/:productId", updateCart)
+router.put("/:productId", updateCartItem)
 router.delete("/:productId", removeFromCart)
 router.delete("/", clearCart)
 
