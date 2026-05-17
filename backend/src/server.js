@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import cors from 'cors';
 import { ENV } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { clerkMiddleware } from '@clerk/express';
@@ -13,7 +14,7 @@ import userRoutes from './routes/user.route.js';
 import orderRoutes from './routes/order.route.js';
 import reviewRoutes from './routes/review.route.js';
 import productRoutes from './routes/product.route.js';
-
+import cartRoutes from './routes/cart.route.js';
 
 const app = express();
 const __dirname = path.resolve();
@@ -24,8 +25,13 @@ route handlers. This is commonly used when working with APIs that send data in J
 app.use(express.json())
 //=================================middlewares=================================
 // Clerk middleware to handle authentication and user management// req.auth
-//adds auth objkect under the request object
+// adds auth objkect under the request object
 app.use(clerkMiddleware()); 
+app.use(cors({
+    origin: ENV.CLIENT_URL,
+    credentials: true, // allow cookies to be sent server with requests
+}));
+//===============================================================================
 
 
 //=================================middlewares=================================
@@ -50,6 +56,7 @@ app.use("/api/users", userRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/reviews", reviewRoutes )
 app.use("/api/products", productRoutes)
+app.use("/api/carts", cartRoutes)
 //===============================================================================
 
 
