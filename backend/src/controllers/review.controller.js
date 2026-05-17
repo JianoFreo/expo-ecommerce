@@ -38,33 +38,31 @@ export async function createReview(req, res) {
             return res.status(400).json({ error: "Product not found in the order" });
         }
 
-        // check if review already exists for this product and order
-        const existingReview = await Review.findOne({
+        // atomic update or create
+        const review = await Review.findOneAndUpdate(
+            { productId, userId: user._id },
+            { rating, orderId, productId, userId: user._id },
+            { new: true, upsert: true, runValidators: true }
+        );
+
+        // update the product rating with atomic aggregation
+        const reviews = await Review.find({ productId });
+        const totalRating = reviews.reduce((sum, rev) => sum + rev.rating, 0);
+        const updatedProduct = await Product.findByIdAndUpdate(
             productId,
-            userId: user._id
-        });
-        if (existingReview) {
-            return res.status(400).json({ error: "You have already reviewed this product" });
+            {
+                averageRating: totalRating / reviews.length,
+                totalReviews: reviews.length,
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedProduct) {
+            await Review.findByIdAndDelete(review._id);
+            return res.status(404).json({ error: "Product not found" });
         }
 
-
-        const review = await Review.create({
-            productId,
-            userId: req.user._id,
-            orderId,
-            rating,
-        });
-
-        // update product rating
-        const product = await Product.findById(productId);
-        const reviews = await Review.find({ productId });
-        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-        product.averageRating = totalRating / reviews.length;
-        product.totalReviews = reviews.length;
-
-        await product.save();
-
-        res.status(201).json(review);
+        res.status(201).json({ message: "Review submitted successfully", review });
     } catch (error) {
         console.error("Error in createReview controller:", error);
         res.status(500).json({ error: "Internal server error" });
