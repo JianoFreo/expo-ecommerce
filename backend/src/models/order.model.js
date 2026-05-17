@@ -6,7 +6,7 @@ const orderItemSchema = new mongoose.Schema({
         ref: 'Product',
         required: true
     },
-    anme: {
+    name: {
         type: String,
         required: true,
     },
@@ -62,8 +62,7 @@ const orderSchema = new mongoose.Schema({
     },
     clerkId: {
         type: String,
-        required: true,
-        unique: true, // we are making a connection between our clerk dashboard and our database
+        required: true, // we are making a connection between our clerk dashboard and our database
     },
     orderItems: [orderItemSchema],
     shippingAddress: {

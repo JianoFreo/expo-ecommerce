@@ -11,7 +11,7 @@ const reviewSchema = new mongoose.Schema({
         ref: 'User', // this is a reference to the user model
         required: true,
     },
-    oderId: {
+    orderId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order', // this is a reference to the order model
         required: true,
