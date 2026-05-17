@@ -30,6 +30,19 @@ Sentry.init({
   replaysSessionSampleRate: 1.0, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
   replaysOnErrorSampleRate: 1.0,
 });
+// Ensure DaisyUI theme is applied on startup (matches the dark forest look)
+// This sets the data-theme attribute on the <html> element so DaisyUI uses that theme.
+try {
+  const theme = import.meta.env.VITE_DAISYUI_THEME || "forest"; // default to forest
+  document.documentElement.setAttribute("data-theme", theme);
+  // Also add the 'dark' class if the theme is dark-like to ensure any Tailwind dark styles apply
+  if (theme === "forest" || theme === "dark") {
+    document.documentElement.classList.add("dark");
+  }
+} catch (e) {
+  // server-side or build-time environment may not have document; ignore
+}
+
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
