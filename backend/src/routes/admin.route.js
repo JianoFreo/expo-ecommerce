@@ -7,6 +7,7 @@ import {
 import {
     createProduct,
     getAllProducts,
+    deleteProduct,
     updateProduct,
     getAllOrders,
     updateOrderStatus,
@@ -34,6 +35,8 @@ router.patch("/orders/:orderId/status", updateOrderStatus); //pending -> shipped
 router.get("/customers", getAllCustomers);
 
 router.get("/stats", getDashboardStats);
+
+router.delete("/products/:id", deleteProduct);
 
 
 

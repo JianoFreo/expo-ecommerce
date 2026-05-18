@@ -18,15 +18,14 @@ import cartRoutes from './routes/cart.route.js';
 
 const app = express();
 const __dirname = path.resolve();
+// Clerk middleware should run before the rest of the stack so req.auth is available.
+app.use(clerkMiddleware());
 //=================================parsing incoming requests with JSON payloads======================
 /* `app.use(express.json())` is setting up middleware in Express to parse incoming requests with JSON
 payloads. This middleware will parse the request body and make it available under `req.body` in your
 route handlers. This is commonly used when working with APIs that send data in JSON format. */
 app.use(express.json())
 //=================================middlewares=================================
-// Clerk middleware to handle authentication and user management// req.auth
-// adds auth objkect under the request object
-app.use(clerkMiddleware()); 
 app.use(cors({
     origin: ENV.CLIENT_URL,
     credentials: true, // allow cookies to be sent server with requests

@@ -25,13 +25,13 @@ export async function createProduct(req, res) {
         // secure_url is the url of the uploaded image in cloudinary
         const imageUrls = uploadResults.map((result) => result.secure_url);
 
-        const product = new Product({
+        const product = await Product.create({
             name,
             description,
             price: parseFloat(price),
             stock: parseInt(stock),
             category,
-            images: imageUrls
+            images: imageUrls,
         });
 
         res.status(201).json({ message: "Product created successfully", product });
@@ -45,7 +45,7 @@ export async function getAllProducts(_, res) {
     try {
         // -1 means sort in descending order: most recent product first
         const products = await Product.find().sort({ createdAt: -1 });
-        res.status(200).json({ products });
+        res.status(200).json(products);
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -54,7 +54,6 @@ export async function getAllProducts(_, res) {
 
 export async function updateProduct(req, res) {
     try {
-        if (!req.user) return res.status(401).json({ message: "Unauthorized" });
         const { id } = req.params; // req.params comes from ap endpopints eg. /api/products/:id
         const { name, description, price, stock, category } = req.body; // req.body comes from the frontend form data or the json data sent in the request
 
