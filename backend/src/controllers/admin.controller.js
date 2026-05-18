@@ -54,6 +54,7 @@ export async function getAllProducts(_, res) {
 
 export async function updateProduct(req, res) {
     try {
+        if (!req.user) return res.status(401).json({ message: "Unauthorized" });
         const { id } = req.params; // req.params comes from ap endpopints eg. /api/products/:id
         const { name, description, price, stock, category } = req.body; // req.body comes from the frontend form data or the json data sent in the request
 
@@ -95,14 +96,12 @@ export async function updateProduct(req, res) {
     }
 }
 
-export async function getAllOrders(_, res) {
+export async function getAllOrders(req, res) {
     try {
-        const orders = await (await Order.find())
-            .populate("user", "name email") // is used to populate the user field in the order with the name and email of the user who placed the order.
-            //“Take the user ObjectId in the order, go to the User collection, find that document, and only return name and email.”
-            //SELECT name, email FROM users WHERE _id = order.user
-            .populate("orderItems.product", "name price") // is used to populate the product field in the order with the name and price of the product that was ordered.
-            .sort({ createdAt: -1 }); // -1 means sort in descending order: most recent order first
+        const orders = await Order.find()
+            .populate("user", "name email")
+            .populate("orderItems.product")
+            .sort({ createdAt: -1 });
         res.status(200).json({ orders });
 
         // SELECT 
@@ -163,8 +162,9 @@ export async function updateOrderStatus(req, res) {
     }
 }
 
-export async function getAllCustomers(_, res) {
+export async function getAllCustomers(req, res) {
     try {
+        if (!req.user) return res.status(401).json({ message: "Unauthorized" });
         const customers = await User.find().sort({ createdAt: -1 }); // exclude password from the response
         res.status(200).json({ customers });
     } catch (error) {
@@ -173,7 +173,7 @@ export async function getAllCustomers(_, res) {
     }
 }
 
-export async function getDashboardStats(_, res) {
+export async function getDashboardStats(req, res) {
     try {
         const revenueResult = await Order.aggregate([
             // aggregate is used to perform complex queries on the database, 
@@ -204,3 +204,30 @@ export async function getDashboardStats(_, res) {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export const deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Delete images from Cloudinary
+        if (product.images && product.images.length > 0) {
+            const deletePromises = product.images.map((imageUrl) => {
+                // Extract public_id from URL (assumes format: .../products/publicId.ext)
+                const publicId = "products/" + imageUrl.split("/products/")[1]?.split(".")[0];
+                if (publicId) return cloudinary.uploader.destroy(publicId);
+            });
+            await Promise.all(deletePromises.filter(Boolean));
+        }
+
+        await Product.findByIdAndDelete(id);
+        res.status(200).json({ message: "Product deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        res.status(500).json({ message: "Failed to delete product" });
+    }
+};
