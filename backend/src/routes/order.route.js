@@ -7,7 +7,9 @@ import {
 
 const router = Router();
 
-router.post("/", protectRoute, createOrder);
-router.get("/", protectRoute, getUserOrders);
+router.use(protectRoute) // middleware
+
+router.post("/", createOrder);
+router.get("/", getUserOrders);
 
 export default router;
