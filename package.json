@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node":">=20.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "build": "npm install --prefix backend && npm install --prefix admin --production=false && npm run build --prefix admin",
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/JianoFreo/expo-ecommerce/issues"
   },
-  "homepage": "https://github.com/JianoFreo/expo-ecommerce#readme"
+  "homepage": "https://github.com/JianoFreo/expo-ecommerce#readme",
+  "dependencies": {
+    "expo": "~54.0.25"
+  }
 }
