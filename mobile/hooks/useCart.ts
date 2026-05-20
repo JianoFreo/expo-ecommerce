@@ -16,8 +16,9 @@ const useCart = () => {
     queryKey: ["cart"],
     enabled: !!(isLoaded && isSignedIn),
     queryFn: async () => {
+      const emptyCart = { items: [] } as unknown as Cart;
       const { data } = await api.get<{ cart: Cart }>("/carts");
-      return data?.cart ?? ({ items: [] } as Cart);
+      return data?.cart ?? emptyCart;
     },
   });
 
