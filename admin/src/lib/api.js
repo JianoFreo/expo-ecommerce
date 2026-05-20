@@ -41,6 +41,13 @@ export const statsApi = {
     },
 };
 
+export const activityApi = {
+    getRecent: async () => {
+        const { data } = await axiosInstance.get("/admin/activities");
+        return data;
+    },
+};
+
 export const customerApi = {
     getAll: async () => {
         const { data } = await axiosInstance.get("/admin/customers");
@@ -63,6 +70,11 @@ export const bannerApi = {
 export const shopApi = {
     getMyShop: async () => {
         const { data } = await axiosInstance.get("/shops/user/me");
+        return data;
+    },
+
+    getMyShopStats: async () => {
+        const { data } = await axiosInstance.get("/shops/user/me/stats");
         return data;
     },
 
