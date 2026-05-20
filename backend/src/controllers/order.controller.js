@@ -1,6 +1,7 @@
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { Review } from "../models/review.model.js";
+import { Activity } from "../models/activity.model.js";
 
 export async function createOrder(req, res) {
     try {
@@ -29,6 +30,14 @@ export async function createOrder(req, res) {
             shippingAddress,
             paymentResult,
             totalPrice,
+        });
+
+        await Activity.create({
+            type: 'order_created',
+            user: user._id,
+            order: order._id,
+            description: `${user.name} created order ${order._id.toString()}`,
+            metadata: { totalPrice, itemCount: orderItems.length },
         });
 
         // update product stock

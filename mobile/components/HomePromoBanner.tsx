@@ -40,6 +40,7 @@ const HomePromoBanner = ({ banner }: Props) => {
             activeOpacity={0.85}
             className="self-start mt-4 rounded-full px-4 py-2"
             style={{ backgroundColor: "#FFFFFF" }}
+            onPress={() => router.push(`/product/${product._id}`)}
           >
             <View className="flex-row items-center gap-2">
               <Text className="font-bold text-[#121212]">

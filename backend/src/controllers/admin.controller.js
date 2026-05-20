@@ -3,7 +3,37 @@ import { Product } from '../models/product.model.js';
 import { Order } from '../models/order.model.js';
 import { User } from '../models/user.model.js';
 import { Shop } from '../models/shop.model.js';
+import { Activity } from '../models/activity.model.js';
 import { ENV } from '../config/env.js';
+
+async function logActivity(payload) {
+    try {
+        await Activity.create(payload);
+    } catch (error) {
+        console.error('Error creating activity log:', error);
+    }
+}
+
+async function getPlatformStoreShop() {
+    let shop = await Shop.findOne({ name: 'Platform Store' }).populate('owner', 'name email');
+
+    if (shop) {
+        return shop;
+    }
+
+    const adminUser = await User.findOne({ email: 'magtangob65@gmail.com' });
+    if (!adminUser) {
+      return null;
+    }
+
+    shop = await Shop.create({
+      name: 'Platform Store',
+      description: 'Default marketplace shop for existing products',
+      owner: adminUser._id,
+    });
+
+    return shop.populate('owner', 'name email');
+}
 
 export async function createProduct(req, res) {
     try {
@@ -38,13 +68,26 @@ export async function createProduct(req, res) {
             images: imageUrls,
         });
 
-        // Auto-assign product to the creator's default shop (or create one if it doesn't exist)
+        // Auto-assign product to the creator's shop. If they do not have one yet,
+        // fall back to the platform store so every product always has a seller.
         let shop = await Shop.findOne({ owner: req.user._id });
+        if (!shop) {
+            shop = await getPlatformStoreShop();
+        }
+
         if (shop) {
             product.shop = shop._id;
             await product.save();
         }
-        // If user doesn't have a shop yet, product remains unassigned until they create one
+
+        await logActivity({
+            type: 'product_added',
+            user: req.user._id,
+            shop: product.shop || null,
+            product: product._id,
+            description: `${req.user.name} added product ${product.name}`,
+            metadata: { productName: product.name, category: product.category },
+        });
 
         res.status(201).json({ message: "Product created successfully", product });
     } catch (error) {
@@ -57,7 +100,17 @@ export async function getAllProducts(_, res) {
     try {
         // -1 means sort in descending order: most recent product first
         const products = await Product.find().populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } }).sort({ createdAt: -1 });
-        res.status(200).json(products);
+        let defaultShop = null;
+
+        if (products.some((product) => !product.shop)) {
+            defaultShop = await getPlatformStoreShop();
+        }
+
+        const normalizedProducts = products.map((product) => ({
+            ...product.toObject(),
+            shop: product.shop || defaultShop || null,
+        }));
+        res.status(200).json(normalizedProducts);
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -250,14 +303,8 @@ export async function migrateProductsToDefaultShop(req, res) {
     // Find or create a "Platform Store" shop for existing products
     let shop = await Shop.findOne({ name: "Platform Store" });
     if (!shop) {
-      const adminUser = await User.findOne({ email: "magtangob65@gmail.com" });
-      if (!adminUser) return res.status(404).json({ message: "Admin user not found" });
-
-      shop = await Shop.create({
-        name: "Platform Store",
-        description: "Default marketplace shop for existing products",
-        owner: adminUser._id,
-      });
+            shop = await getPlatformStoreShop();
+            if (!shop) return res.status(404).json({ message: "Admin user not found" });
     }
 
     // Assign all products without a shop to this default shop
@@ -303,6 +350,13 @@ export async function banUser(req, res) {
     user.bannedReason = reason || 'Account suspended by admin';
     await user.save();
 
+        await logActivity({
+            type: 'user_banned',
+            user: req.user._id,
+            description: `${req.user.name} banned ${user.name}`,
+            metadata: { bannedUserId: user._id.toString(), reason: user.bannedReason },
+        });
+
     res.status(200).json({ message: 'User banned successfully', user });
   } catch (error) {
     console.error('Error banning user:', error);
@@ -324,9 +378,35 @@ export async function unbanUser(req, res) {
     user.bannedReason = '';
     await user.save();
 
+        await logActivity({
+            type: 'user_unbanned',
+            user: req.user._id,
+            description: `${req.user.name} unbanned ${user.name}`,
+            metadata: { unbannedUserId: user._id.toString() },
+        });
+
     res.status(200).json({ message: 'User unbanned successfully', user });
   } catch (error) {
     console.error('Error unbanning user:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
+}
+
+export async function getRecentActivities(req, res) {
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+        const activities = await Activity.find()
+            .populate('user', 'name email imageUrl')
+            .populate('shop', 'name owner')
+            .populate('product', 'name images')
+            .populate('order', 'totalPrice status createdAt')
+            .sort({ createdAt: -1 })
+            .limit(20);
+
+        res.status(200).json({ activities });
+    } catch (error) {
+        console.error('Error fetching recent activities:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 }

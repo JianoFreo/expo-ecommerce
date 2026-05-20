@@ -1,5 +1,7 @@
 import { Shop } from "../models/shop.model.js";
 import { Product } from "../models/product.model.js";
+import { Order } from "../models/order.model.js";
+import { Activity } from "../models/activity.model.js";
 
 export async function getMyShop(req, res) {
   try {
@@ -28,6 +30,14 @@ export async function createShop(req, res) {
       description: description || '',
       bannerImage: bannerImage || '',
       owner: req.user._id,
+    });
+
+    await Activity.create({
+      type: 'shop_created',
+      user: req.user._id,
+      shop: shop._id,
+      description: `${req.user.name} created shop ${shop.name}`,
+      metadata: { shopName: shop.name },
     });
 
     res.status(201).json({ shop });
@@ -86,10 +96,84 @@ export async function getAllShops(_, res) {
 export async function getShopProducts(req, res) {
   try {
     const { id } = req.params; // shop id
-    const products = await Product.find({ shop: id }).sort({ createdAt: -1 });
+    const products = await Product.find({ shop: id })
+      .populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } })
+      .sort({ createdAt: -1 });
     res.status(200).json({ products });
   } catch (error) {
     console.error('Error fetching shop products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function getMyShopStats(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const shop = await Shop.findOne({ owner: req.user._id }).populate('owner', 'name email imageUrl');
+    if (!shop) {
+      return res.status(404).json({ message: 'You do not have a shop yet' });
+    }
+
+    const products = await Product.find({ shop: shop._id }).select('_id');
+    const productIds = products.map((product) => product._id.toString());
+    const productIdSet = new Set(productIds);
+
+    const orders = await Order.find({ "orderItems.product": { $in: productIds } })
+      .populate({
+        path: 'orderItems.product',
+        populate: { path: 'shop', select: 'name owner', populate: { path: 'owner', select: 'name email' } },
+      })
+      .sort({ createdAt: -1 });
+
+    const recentOrders = orders.slice(0, 5).map((order) => {
+      const shopItems = order.orderItems.filter((item) => {
+        const productId = item.product?._id?.toString?.();
+        return productId && productIdSet.has(productId);
+      });
+
+      const shopRevenue = shopItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+      return {
+        _id: order._id,
+        createdAt: order.createdAt,
+        status: order.status,
+        customerName: order.shippingAddress?.fullName,
+        itemCount: shopItems.reduce((total, item) => total + item.quantity, 0),
+        revenue: shopRevenue,
+      };
+    });
+
+    const totalRevenue = orders.reduce((grandTotal, order) => {
+      const shopItems = order.orderItems.filter((item) => {
+        const productId = item.product?._id?.toString?.();
+        return productId && productIdSet.has(productId);
+      });
+
+      const shopRevenue = shopItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+      return grandTotal + shopRevenue;
+    }, 0);
+
+    const totalItemsSold = orders.reduce((grandTotal, order) => {
+      const shopItems = order.orderItems.filter((item) => {
+        const productId = item.product?._id?.toString?.();
+        return productId && productIdSet.has(productId);
+      });
+      return grandTotal + shopItems.reduce((total, item) => total + item.quantity, 0);
+    }, 0);
+
+    res.status(200).json({
+      shop,
+      stats: {
+        totalProducts: products.length,
+        totalOrders: orders.length,
+        totalRevenue,
+        totalItemsSold,
+      },
+      recentOrders,
+    });
+  } catch (error) {
+    console.error('Error fetching shop stats:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

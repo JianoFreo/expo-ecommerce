@@ -6,6 +6,14 @@ import { NAVIGATION } from "./Navbar";
 function Sidebar() {
   const location = useLocation();
   const { user } = useUser();
+  const currentEmail = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase() || "";
+  const isSuperAdmin = currentEmail === "magtangob65@gmail.com";
+  const visibleNavigation = NAVIGATION.filter((item) => {
+    if (item.path === "/customers") {
+      return isSuperAdmin;
+    }
+    return true;
+  });
 
   return (
     <div className="drawer-side is-drawer-close:overflow-visible">
@@ -22,13 +30,13 @@ function Sidebar() {
               <ShoppingBagIcon className="w-6 h-6 text-primary-content" />
             </div>
             <span className="text-xl font-bold is-drawer-close:hidden">
-              Admin
+              {isSuperAdmin ? "Admin" : "Seller"}
             </span>
           </div>
         </div>
 
         <ul className="menu w-full grow flex flex-col gap-2">
-          {NAVIGATION.map((item) => {
+          {visibleNavigation.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <li key={item.path}>

@@ -18,6 +18,7 @@ import {
     getAllUsers,
     banUser,
     unbanUser,
+    getRecentActivities,
 } from "../controllers/admin.controller.js";
 import { upsertHomeBanner } from "../controllers/banner.controller.js";
 
@@ -41,6 +42,7 @@ router.patch("/orders/:orderId/status", updateOrderStatus); //pending -> shipped
 router.get("/customers", getAllCustomers);
 
 router.get("/stats", getDashboardStats);
+router.get("/activities", protectRoute, superAdminOnly, getRecentActivities);
 
 router.delete("/products/:id", deleteProduct);
 
