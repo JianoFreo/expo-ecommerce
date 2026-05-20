@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
+import { router } from "expo-router";
 import type { HomeBanner } from "@/hooks/useHomeBanner";
 
 type Props = {
@@ -8,60 +9,62 @@ type Props = {
 };
 
 const HomePromoBanner = ({ banner }: Props) => {
-  const backgroundColor = banner.backgroundColor || "#1DB954";
-  const textColor = banner.textColor || "#FFFFFF";
-  const buttonColor = banner.buttonColor || "#FFFFFF";
-  const buttonTextColor = banner.buttonTextColor || "#121212";
+  const product = banner.product;
+
+  if (!banner.isActive || !product) {
+    return null;
+  }
 
   return (
-    <View
+    <TouchableOpacity
       className="mx-6 mb-6 rounded-[28px] overflow-hidden"
-      style={{ backgroundColor }}
+      activeOpacity={0.9}
+      onPress={() => router.push(`/product/${product._id}`)}
     >
       <View className="flex-row items-center p-5 gap-4">
         <View className="flex-1 pr-2">
           <View className="self-start rounded-full px-3 py-1 mb-3 border border-white/25">
-            <Text style={{ color: textColor }} className="text-xs font-bold uppercase tracking-wide">
+            <Text className="text-xs font-bold uppercase tracking-wide text-white">
               {banner.badgeText || "Best Deals"}
             </Text>
           </View>
 
-          <Text style={{ color: textColor }} className="text-2xl font-extrabold leading-tight">
-            {banner.title}
+          <Text className="text-2xl font-extrabold leading-tight text-white">
+            {product.name}
           </Text>
-          <Text style={{ color: textColor }} className="text-sm opacity-90 mt-2 leading-5">
-            {banner.subtitle}
+          <Text className="text-sm opacity-90 mt-2 leading-5 text-white">
+            {product.description}
           </Text>
 
           <TouchableOpacity
             activeOpacity={0.85}
             className="self-start mt-4 rounded-full px-4 py-2"
-            style={{ backgroundColor: buttonColor }}
+            style={{ backgroundColor: "#FFFFFF" }}
           >
             <View className="flex-row items-center gap-2">
-              <Text className="font-bold" style={{ color: buttonTextColor }}>
+              <Text className="font-bold text-[#121212]">
                 {banner.ctaText || "Shop Now"}
               </Text>
-              <Ionicons name="arrow-forward" size={16} color={buttonTextColor} />
+              <Ionicons name="arrow-forward" size={16} color="#121212" />
             </View>
           </TouchableOpacity>
         </View>
 
-        {banner.imageUrl ? (
+        {product.images?.[0] ? (
           <Image
-            source={{ uri: banner.imageUrl }}
+            source={{ uri: product.images[0] }}
             style={{ width: 118, height: 118, borderRadius: 24 }}
             contentFit="cover"
           />
         ) : (
           <View className="w-[118px] h-[118px] rounded-3xl bg-black/15 items-center justify-center px-3">
-            <Text style={{ color: textColor }} className="text-center text-xs font-semibold opacity-90">
-              Add an image URL in the admin dashboard
+            <Text className="text-center text-xs font-semibold opacity-90 text-white">
+              Product image will appear here
             </Text>
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
