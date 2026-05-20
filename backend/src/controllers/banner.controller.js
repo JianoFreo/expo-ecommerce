@@ -1,24 +1,19 @@
 import { Banner } from "../models/banner.model.js";
+import { Product } from "../models/product.model.js";
 
 const BANNER_KEY = "home-banner";
 
 const defaultBanner = {
   key: BANNER_KEY,
-  title: "Discount sale",
-  subtitle: "Save on top picks",
+  product: null,
   badgeText: "Best Deals",
   ctaText: "Shop Now",
-  imageUrl: "",
-  backgroundColor: "#1DB954",
-  textColor: "#FFFFFF",
-  buttonColor: "#FFFFFF",
-  buttonTextColor: "#121212",
-  isActive: true,
+  isActive: false,
 };
 
 export async function getHomeBanner(req, res) {
   try {
-    const banner = await Banner.findOne({ key: BANNER_KEY, isActive: true }).lean();
+    const banner = await Banner.findOne({ key: BANNER_KEY, isActive: true }).populate("product").lean();
     res.status(200).json({ banner: banner || defaultBanner });
   } catch (error) {
     console.error("Error fetching banner:", error);
@@ -29,35 +24,28 @@ export async function getHomeBanner(req, res) {
 export async function upsertHomeBanner(req, res) {
   try {
     const {
-      title,
-      subtitle,
+      productId,
       badgeText,
       ctaText,
-      imageUrl,
-      backgroundColor,
-      textColor,
-      buttonColor,
-      buttonTextColor,
       isActive,
     } = req.body;
 
-    if (!title || !subtitle) {
-      return res.status(400).json({ message: "Title and subtitle are required" });
+    if (!productId) {
+      return res.status(400).json({ message: "Product is required" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
     const banner = await Banner.findOneAndUpdate(
       { key: BANNER_KEY },
       {
         key: BANNER_KEY,
-        title,
-        subtitle,
+        product: product._id,
         badgeText: badgeText || "Best Deals",
         ctaText: ctaText || "Shop Now",
-        imageUrl: imageUrl || "",
-        backgroundColor: backgroundColor || "#1DB954",
-        textColor: textColor || "#FFFFFF",
-        buttonColor: buttonColor || "#FFFFFF",
-        buttonTextColor: buttonTextColor || "#121212",
         isActive: typeof isActive === "boolean" ? isActive : true,
       },
       {
@@ -65,7 +53,7 @@ export async function upsertHomeBanner(req, res) {
         upsert: true,
         setDefaultsOnInsert: true,
       }
-    );
+    ).populate("product");
 
     res.status(200).json({ banner });
   } catch (error) {

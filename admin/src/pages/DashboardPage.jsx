@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { bannerApi, orderApi, statsApi } from "../lib/api";
+import { bannerApi, orderApi, productApi, statsApi } from "../lib/api";
 import {
   DollarSignIcon,
   PackageIcon,
@@ -22,36 +22,31 @@ function DashboardPage() {
     queryFn: statsApi.getDashboard,
   });
 
+  const { data: productsData } = useQuery({
+    queryKey: ["products"],
+    queryFn: productApi.getAll,
+  });
+
+  const products = productsData || [];
+
   const { data: bannerData, isLoading: bannerLoading } = useQuery({
     queryKey: ["homeBanner"],
     queryFn: bannerApi.get,
   });
 
   const [formData, setFormData] = useState({
-    title: "",
-    subtitle: "",
+    productId: "",
     badgeText: "",
     ctaText: "",
-    imageUrl: "",
-    backgroundColor: "#1DB954",
-    textColor: "#FFFFFF",
-    buttonColor: "#FFFFFF",
-    buttonTextColor: "#121212",
     isActive: true,
   });
 
   useEffect(() => {
     if (bannerData?.banner) {
       setFormData({
-        title: bannerData.banner.title || "",
-        subtitle: bannerData.banner.subtitle || "",
+        productId: bannerData.banner.product?._id || bannerData.banner.product || "",
         badgeText: bannerData.banner.badgeText || "",
         ctaText: bannerData.banner.ctaText || "",
-        imageUrl: bannerData.banner.imageUrl || "",
-        backgroundColor: bannerData.banner.backgroundColor || "#1DB954",
-        textColor: bannerData.banner.textColor || "#FFFFFF",
-        buttonColor: bannerData.banner.buttonColor || "#FFFFFF",
-        buttonTextColor: bannerData.banner.buttonTextColor || "#121212",
         isActive: bannerData.banner.isActive ?? true,
       });
     }
@@ -111,60 +106,50 @@ function DashboardPage() {
           </div>
 
           <div
-            className="rounded-3xl p-6 flex items-center justify-between gap-6"
-            style={{ backgroundColor: formData.backgroundColor }}
+            className="rounded-3xl p-6 flex items-center justify-between gap-6 bg-base-200"
           >
-            <div className="max-w-xl space-y-2" style={{ color: formData.textColor }}>
-              <div className="badge badge-outline" style={{ color: formData.textColor }}>
-                {formData.badgeText || "Best Deals"}
-              </div>
-              <h3 className="text-3xl font-bold">{formData.title || "Discount sale"}</h3>
-              <p className="text-base opacity-90">{formData.subtitle || "Save on top picks"}</p>
-              <button
-                className="btn btn-sm mt-3"
-                style={{
-                  backgroundColor: formData.buttonColor,
-                  color: formData.buttonTextColor,
-                  borderColor: formData.buttonColor,
-                }}
-                type="button"
-              >
-                {formData.ctaText || "Shop Now"}
-              </button>
-            </div>
+            {(() => {
+              const selectedProduct = products.find((product) => product._id === formData.productId);
+              return selectedProduct ? (
+                <>
+                  <div className="max-w-xl space-y-2">
+                    <div className="badge badge-outline">{formData.badgeText || "Best Deals"}</div>
+                    <h3 className="text-3xl font-bold">{selectedProduct.name}</h3>
+                    <p className="text-base opacity-90 line-clamp-2">{selectedProduct.description}</p>
+                    <button className="btn btn-sm mt-3" type="button">
+                      {formData.ctaText || "Shop Now"}
+                    </button>
+                  </div>
 
-            {formData.imageUrl ? (
-              <img
-                src={formData.imageUrl}
-                alt={formData.title || "banner preview"}
-                className="h-40 w-44 rounded-2xl object-cover bg-base-200"
-              />
-            ) : (
-              <div className="h-40 w-44 rounded-2xl bg-base-200/40 flex items-center justify-center text-center text-sm opacity-70 px-4">
-                Add an image URL to preview the banner artwork here.
-              </div>
-            )}
+                  <img
+                    src={selectedProduct.images?.[0]}
+                    alt={selectedProduct.name}
+                    className="h-40 w-44 rounded-2xl object-cover bg-base-200"
+                  />
+                </>
+              ) : (
+                <div className="w-full text-sm opacity-70 text-center py-10">
+                  Select a product to preview the banner.
+                </div>
+              );
+            })()}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label className="form-control">
-              <span className="label-text mb-1">Title</span>
-              <input
-                className="input input-bordered"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Discount sale"
-              />
-            </label>
-
-            <label className="form-control">
-              <span className="label-text mb-1">Subtitle</span>
-              <input
-                className="input input-bordered"
-                value={formData.subtitle}
-                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                placeholder="Save on top picks"
-              />
+            <label className="form-control md:col-span-2">
+              <span className="label-text mb-1">Product</span>
+              <select
+                className="select select-bordered"
+                value={formData.productId}
+                onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
+              >
+                <option value="">Select a product</option>
+                {products.map((product) => (
+                  <option key={product._id} value={product._id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="form-control">
@@ -184,56 +169,6 @@ function DashboardPage() {
                 value={formData.ctaText}
                 onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
                 placeholder="Shop Now"
-              />
-            </label>
-
-            <label className="form-control md:col-span-2">
-              <span className="label-text mb-1">Image URL</span>
-              <input
-                className="input input-bordered"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://..."
-              />
-            </label>
-
-            <label className="form-control">
-              <span className="label-text mb-1">Background Color</span>
-              <input
-                className="input input-bordered"
-                value={formData.backgroundColor}
-                onChange={(e) => setFormData({ ...formData, backgroundColor: e.target.value })}
-                placeholder="#1DB954"
-              />
-            </label>
-
-            <label className="form-control">
-              <span className="label-text mb-1">Text Color</span>
-              <input
-                className="input input-bordered"
-                value={formData.textColor}
-                onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
-                placeholder="#FFFFFF"
-              />
-            </label>
-
-            <label className="form-control">
-              <span className="label-text mb-1">Button Color</span>
-              <input
-                className="input input-bordered"
-                value={formData.buttonColor}
-                onChange={(e) => setFormData({ ...formData, buttonColor: e.target.value })}
-                placeholder="#FFFFFF"
-              />
-            </label>
-
-            <label className="form-control">
-              <span className="label-text mb-1">Button Text Color</span>
-              <input
-                className="input input-bordered"
-                value={formData.buttonTextColor}
-                onChange={(e) => setFormData({ ...formData, buttonTextColor: e.target.value })}
-                placeholder="#121212"
               />
             </label>
 

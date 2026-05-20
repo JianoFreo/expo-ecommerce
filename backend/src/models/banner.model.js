@@ -8,15 +8,10 @@ const bannerSchema = new mongoose.Schema(
       unique: true,
       default: "home-banner",
     },
-    title: {
-      type: String,
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
       required: true,
-      default: "Discount sale",
-    },
-    subtitle: {
-      type: String,
-      required: true,
-      default: "Save on top picks",
     },
     badgeText: {
       type: String,
@@ -25,26 +20,6 @@ const bannerSchema = new mongoose.Schema(
     ctaText: {
       type: String,
       default: "Shop Now",
-    },
-    imageUrl: {
-      type: String,
-      default: "",
-    },
-    backgroundColor: {
-      type: String,
-      default: "#1DB954",
-    },
-    textColor: {
-      type: String,
-      default: "#FFFFFF",
-    },
-    buttonColor: {
-      type: String,
-      default: "#FFFFFF",
-    },
-    buttonTextColor: {
-      type: String,
-      default: "#121212",
     },
     isActive: {
       type: Boolean,

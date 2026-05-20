@@ -76,15 +76,7 @@ const ShopScreen = () => {
           </View>
         </View>
 
-        <HomePromoBanner
-          banner={
-            banner || {
-              key: "home-banner",
-              title: "Discount sale",
-              subtitle: "Save on top picks",
-            }
-          }
-        />
+        <HomePromoBanner banner={banner || { key: "home-banner", product: null, isActive: false }} />
 
         {/* CATEGORY FILTER */}
         <View className="mb-6">
