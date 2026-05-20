@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApi } from "@/lib/api";
 import { Cart } from "@/types";
+import { useAuth } from "@clerk/clerk-expo";
 
 const useCart = () => {
   const api = useApi();
   const queryClient = useQueryClient();
+  const { isLoaded, isSignedIn } = useAuth();
 
   const {
     data: cart,
@@ -12,42 +14,56 @@ const useCart = () => {
     isError,
   } = useQuery({
     queryKey: ["cart"],
+    enabled: !!(isLoaded && isSignedIn),
     queryFn: async () => {
-      const { data } = await api.get<{ cart: Cart }>("/cart");
-      return data.cart;
+      const emptyCart = { items: [] } as unknown as Cart;
+      const { data } = await api.get<{ cart: Cart }>("/carts");
+      return data?.cart ?? emptyCart;
     },
   });
 
   const addToCartMutation = useMutation({
     mutationFn: async ({ productId, quantity = 1 }: { productId: string; quantity?: number }) => {
-      const { data } = await api.post<{ cart: Cart }>("/cart", { productId, quantity });
+      const { data } = await api.put<{ cart: Cart }>("/carts", { productId, quantity });
       return data.cart;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onError: (err: any) => {
+      console.error('[useCart] addToCart error', err?.response?.data || err?.message || err);
+    },
   });
 
   const updateQuantityMutation = useMutation({
     mutationFn: async ({ productId, quantity }: { productId: string; quantity: number }) => {
-      const { data } = await api.put<{ cart: Cart }>(`/cart/${productId}`, { quantity });
+      const { data } = await api.put<{ cart: Cart }>(`/carts/${productId}`, { quantity });
       return data.cart;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onError: (err: any) => {
+      console.error('[useCart] updateQuantity error', err?.response?.data || err?.message || err);
+    },
   });
 
   const removeFromCartMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const { data } = await api.delete<{ cart: Cart }>(`/cart/${productId}`);
+      const { data } = await api.delete<{ cart: Cart }>(`/carts/${productId}`);
       return data.cart;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onError: (err: any) => {
+      console.error('[useCart] removeFromCart error', err?.response?.data || err?.message || err);
+    },
   });
 
   const clearCartMutation = useMutation({
     mutationFn: async () => {
-      const { data } = await api.delete<{ cart: Cart }>("/cart");
+      const { data } = await api.delete<{ cart: Cart }>("/carts");
       return data.cart;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onError: (err: any) => {
+      console.error('[useCart] clearCart error', err?.response?.data || err?.message || err);
+    },
   });
 
   const cartTotal =

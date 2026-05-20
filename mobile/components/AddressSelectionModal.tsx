@@ -8,6 +8,7 @@ interface AddressSelectionModalProps {
   visible: boolean;
   onClose: () => void;
   onProceed: (address: Address) => void;
+  onCashOnDelivery: (address: Address) => void;
   isProcessing: boolean;
 }
 
@@ -15,6 +16,7 @@ const AddressSelectionModal = ({
   visible,
   onClose,
   onProceed,
+  onCashOnDelivery,
   isProcessing,
 }: AddressSelectionModalProps) => {
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
@@ -86,7 +88,7 @@ const AddressSelectionModal = ({
             )}
           </ScrollView>
 
-          <View className="p-6 border-t border-surface">
+          <View className="p-6 border-t border-surface gap-3">
             <TouchableOpacity
               className="bg-primary rounded-2xl py-5"
               activeOpacity={0.9}
@@ -101,9 +103,31 @@ const AddressSelectionModal = ({
                 ) : (
                   <>
                     <Text className="text-background font-bold text-lg mr-2">
-                      Continue to Payment
+                      Pay with Card
                     </Text>
-                    <Ionicons name="arrow-forward" size={20} color="#121212" />
+                    <Ionicons name="card-outline" size={20} color="#121212" />
+                  </>
+                )}
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="bg-background-lighter rounded-2xl py-5"
+              activeOpacity={0.9}
+              onPress={() => {
+                if (selectedAddress) onCashOnDelivery(selectedAddress);
+              }}
+              disabled={!selectedAddress || isProcessing}
+            >
+              <View className="flex-row items-center justify-center">
+                {isProcessing ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Text className="text-text-primary font-bold text-lg mr-2">
+                      Cash on Delivery
+                    </Text>
+                    <Ionicons name="cash-outline" size={20} color="#FFFFFF" />
                   </>
                 )}
               </View>

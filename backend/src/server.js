@@ -16,6 +16,7 @@ import reviewRoutes from './routes/review.route.js';
 import productRoutes from './routes/product.route.js';
 import cartRoutes from './routes/cart.route.js';
 import paymentRoutes from "./routes/payment.route.js";
+import bannerRoutes from "./routes/banner.route.js";
 
 const app = express();
 const __dirname = path.resolve();
@@ -75,6 +76,7 @@ app.use("/api/orders", orderRoutes)
 app.use("/api/reviews", reviewRoutes)
 app.use("/api/products", productRoutes)
 app.use("/api/carts", cartRoutes)
+app.use("/api/banner", bannerRoutes)
 //===============================================================================
 
 

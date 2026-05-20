@@ -154,6 +154,65 @@ const CartScreen = () => {
     }
   };
 
+  const handleCashOnDelivery = async (selectedAddress: Address) => {
+    setAddressModalVisible(false);
+
+    Sentry.logger.info("Cash on delivery initiated", {
+      itemCount: cartItemCount,
+      total: total.toFixed(2),
+      city: selectedAddress.city,
+    });
+
+    try {
+      setPaymentLoading(true);
+
+      const { data } = await api.post("/orders", {
+        orderItems: cartItems.map((item) => ({
+          product: item.product,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          image: item.product.images[0],
+        })),
+        shippingAddress: {
+          fullName: selectedAddress.fullName,
+          streetAddress: selectedAddress.streetAddress,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          zipCode: selectedAddress.zipCode,
+          phoneNumber: selectedAddress.phoneNumber,
+        },
+        paymentResult: {
+          id: "COD",
+          status: "cash_on_delivery",
+        },
+        totalPrice: total,
+      });
+
+      Sentry.logger.info("Cash on delivery order created", {
+        orderId: data?.order?._id,
+        total: total.toFixed(2),
+        itemCount: cartItems.length,
+      });
+
+      Alert.alert(
+        "Order placed",
+        "Your cash on delivery order has been placed successfully.",
+        [{ text: "OK", onPress: () => clearCart() }]
+      );
+    } catch (error) {
+      Sentry.logger.error("Cash on delivery failed", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        cartTotal: total,
+        itemCount: cartItems.length,
+      });
+
+      Alert.alert("Error", "Failed to place cash on delivery order");
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
   if (isLoading) return <LoadingUI />;
   if (isError) return <ErrorUI />;
   if (cartItems.length === 0) return <EmptyUI />;
@@ -292,6 +351,7 @@ const CartScreen = () => {
         visible={addressModalVisible}
         onClose={() => setAddressModalVisible(false)}
         onProceed={handleProceedWithPayment}
+        onCashOnDelivery={handleCashOnDelivery}
         isProcessing={paymentLoading}
       />
     </SafeScreen>

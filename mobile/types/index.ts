@@ -93,3 +93,17 @@ export interface Cart {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface HomeBanner {
+  key: string;
+  title: string;
+  subtitle: string;
+  badgeText?: string;
+  ctaText?: string;
+  imageUrl?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  buttonColor?: string;
+  buttonTextColor?: string;
+  isActive?: boolean;
+}
