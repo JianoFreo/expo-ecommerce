@@ -80,6 +80,23 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
     }],
+    role: {
+        type: String,
+        enum: ['admin', 'user'],
+        default: 'user',
+    },
+    isBanned: {
+        type: Boolean,
+        default: false,
+    },
+    bannedAt: {
+        type: Date,
+        default: null,
+    },
+    bannedReason: {
+        type: String,
+        default: '',
+    },
 }, { timestamps: true });
 
 

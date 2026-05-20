@@ -2,9 +2,13 @@ import cloudinary from '../config/cloudinary.js';
 import { Product } from '../models/product.model.js';
 import { Order } from '../models/order.model.js';
 import { User } from '../models/user.model.js';
+import { Shop } from '../models/shop.model.js';
+import { ENV } from '../config/env.js';
 
 export async function createProduct(req, res) {
     try {
+        if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
         const { name, description, price, stock, category } = req.body;
 
         if (!name || !description || !price || !stock || !category) {
@@ -34,6 +38,14 @@ export async function createProduct(req, res) {
             images: imageUrls,
         });
 
+        // Auto-assign product to the creator's default shop (or create one if it doesn't exist)
+        let shop = await Shop.findOne({ owner: req.user._id });
+        if (shop) {
+            product.shop = shop._id;
+            await product.save();
+        }
+        // If user doesn't have a shop yet, product remains unassigned until they create one
+
         res.status(201).json({ message: "Product created successfully", product });
     } catch (error) {
         console.error("Error creating product:", error);
@@ -44,7 +56,7 @@ export async function createProduct(req, res) {
 export async function getAllProducts(_, res) {
     try {
         // -1 means sort in descending order: most recent product first
-        const products = await Product.find().sort({ createdAt: -1 });
+        const products = await Product.find().populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } }).sort({ createdAt: -1 });
         res.status(200).json(products);
     } catch (error) {
         console.error("Error fetching products:", error);
@@ -230,3 +242,91 @@ export const deleteProduct = async (req, res) => {
         res.status(500).json({ message: "Failed to delete product" });
     }
 };
+
+export async function migrateProductsToDefaultShop(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    // Find or create a "Platform Store" shop for existing products
+    let shop = await Shop.findOne({ name: "Platform Store" });
+    if (!shop) {
+      const adminUser = await User.findOne({ email: "magtangob65@gmail.com" });
+      if (!adminUser) return res.status(404).json({ message: "Admin user not found" });
+
+      shop = await Shop.create({
+        name: "Platform Store",
+        description: "Default marketplace shop for existing products",
+        owner: adminUser._id,
+      });
+    }
+
+    // Assign all products without a shop to this default shop
+    const result = await Product.updateMany(
+      { shop: null },
+      { shop: shop._id }
+    );
+
+    res.status(200).json({
+      message: `Migration successful. Updated ${result.modifiedCount} products.`,
+      shop,
+    });
+  } catch (error) {
+    console.error("Error migrating products:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function getAllUsers(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const users = await User.find().select('-clerkId').sort({ createdAt: -1 });
+    res.status(200).json({ users });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function banUser(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const { userId } = req.params;
+    const { reason } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.isBanned = true;
+    user.bannedAt = new Date();
+    user.bannedReason = reason || 'Account suspended by admin';
+    await user.save();
+
+    res.status(200).json({ message: 'User banned successfully', user });
+  } catch (error) {
+    console.error('Error banning user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function unbanUser(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.isBanned = false;
+    user.bannedAt = null;
+    user.bannedReason = '';
+    await user.save();
+
+    res.status(200).json({ message: 'User unbanned successfully', user });
+  } catch (error) {
+    console.error('Error unbanning user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}

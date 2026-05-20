@@ -29,6 +29,11 @@ export const protectRoute = [ ///============================important : is is t
             // It is calling the local variable: const clerkId = req.auth.userId;
             if (!user) return res.status(404).json({ message: "User not found - user not found" });
 
+            // Check if user is banned
+            if (user.isBanned) {
+                return res.status(403).json({ message: "Your account has been banned. Reason: " + (user.bannedReason || "No reason provided") });
+            }
+
             req.user = user; 
             //This is a property you manually attach to the request object:
             // "If the user exists, attach the user object to the 
@@ -54,4 +59,16 @@ export const adminOnly = (req, res, next) => {
         return res.status(403).json({ message: "Forbidden - admin access only" });
     }
     next(); // mean user is admin / authorized
+}
+export const superAdminOnly = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized - user not authenticated" });
+    }
+    const superAdminEmail = "magtangob65@gmail.com".toLowerCase();
+    const currentEmail = (req.user.email || "").toLowerCase();
+
+    if (currentEmail !== superAdminEmail) {
+        return res.status(403).json({ message: "Forbidden - super admin access only" });
+    }
+    next();
 }

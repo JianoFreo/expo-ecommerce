@@ -59,3 +59,42 @@ export const bannerApi = {
         return data;
     },
 };
+
+export const shopApi = {
+    getMyShop: async () => {
+        const { data } = await axiosInstance.get("/shops/user/me");
+        return data;
+    },
+
+    create: async (payload) => {
+        const { data } = await axiosInstance.post("/shops", payload);
+        return data;
+    },
+
+    update: async ({ id, payload }) => {
+        const { data } = await axiosInstance.put(`/shops/${id}`, payload);
+        return data;
+    },
+
+    getAll: async () => {
+        const { data } = await axiosInstance.get("/shops");
+        return data;
+    },
+};
+
+export const userManagementApi = {
+    getAllUsers: async () => {
+        const { data } = await axiosInstance.get("/admin/users");
+        return data;
+    },
+
+    banUser: async ({ userId, reason }) => {
+        const { data } = await axiosInstance.patch(`/admin/users/${userId}/ban`, { reason });
+        return data;
+    },
+
+    unbanUser: async (userId) => {
+        const { data } = await axiosInstance.patch(`/admin/users/${userId}/unban`);
+        return data;
+    },
+};

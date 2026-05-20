@@ -77,6 +77,17 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
           {product.name}
         </Text>
 
+        {product.shop && (
+          <TouchableOpacity
+            onPress={() => router.push(`/shop/${product.shop._id}`)}
+            activeOpacity={0.7}
+          >
+            <Text className="text-primary text-xs font-semibold mb-2">
+              By {product.shop.owner?.name || product.shop.name}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <View className="flex-row items-center mb-2">
           <Ionicons name="star" size={12} color="#FFC107" />
           <Text className="text-text-primary text-xs font-semibold ml-1">

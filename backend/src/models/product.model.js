@@ -26,6 +26,11 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     }],
+    shop: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Shop',
+        default: null,
+    },
     averageRating: {
         type: Number,
         min: 0,

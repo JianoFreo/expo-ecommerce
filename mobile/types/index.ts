@@ -1,3 +1,18 @@
+export interface Shop {
+  _id: string;
+  name: string;
+  description: string;
+  owner: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  bannerImage: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Product {
   _id: string;
   name: string;
@@ -8,6 +23,7 @@ export interface Product {
   images: string[];
   averageRating: number;
   totalReviews: number;
+  shop?: Shop;
   createdAt: string;
   updatedAt: string;
 }
