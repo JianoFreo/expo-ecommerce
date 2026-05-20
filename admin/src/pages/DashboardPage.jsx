@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { bannerApi, orderApi, productApi, statsApi } from "../lib/api";
+import { bannerApi, orderApi, productApi, statsApi, shopApi, userManagementApi } from "../lib/api";
 import {
   DollarSignIcon,
   PackageIcon,
   ShoppingBagIcon,
   UsersIcon,
+  BanIcon,
+  CheckCircleIcon,
 } from "lucide-react";
 import { capitalizeText, formatDate, getOrderStatusBadge } from "../lib/utils";
 
@@ -27,6 +29,16 @@ function DashboardPage() {
     queryFn: productApi.getAll,
   });
 
+  const { data: myShopData, isLoading: myShopLoading } = useQuery({
+    queryKey: ["myShop"],
+    queryFn: shopApi.getMyShop,
+  });
+
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ["adminUsers"],
+    queryFn: userManagementApi.getAllUsers,
+  });
+
   const products = productsData || [];
 
   const { data: bannerData, isLoading: bannerLoading } = useQuery({
@@ -41,6 +53,29 @@ function DashboardPage() {
     isActive: true,
   });
 
+  const [shopFormData, setShopFormData] = useState({
+    name: "",
+    description: "",
+    bannerImage: "",
+  });
+
+  const [banFormData, setBanFormData] = useState({
+    userId: "",
+    reason: "",
+  });
+
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  useEffect(() => {
+    if (myShopData?.shop) {
+      setShopFormData({
+        name: myShopData.shop.name || "",
+        description: myShopData.shop.description || "",
+        bannerImage: myShopData.shop.bannerImage || "",
+      });
+    }
+  }, [myShopData]);
+
   useEffect(() => {
     if (bannerData?.banner) {
       setFormData({
@@ -52,10 +87,44 @@ function DashboardPage() {
     }
   }, [bannerData]);
 
+  useEffect(() => {
+    // Check if user has access to users endpoint (super-admin only)
+    setIsSuperAdmin(usersData !== undefined);
+  }, [usersData]);
+
   const saveBannerMutation = useMutation({
     mutationFn: bannerApi.update,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["homeBanner"] });
+    },
+  });
+
+  const createShopMutation = useMutation({
+    mutationFn: shopApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myShop"] });
+    },
+  });
+
+  const updateShopMutation = useMutation({
+    mutationFn: ({ id, payload }) => shopApi.update({ id, payload }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myShop"] });
+    },
+  });
+
+  const banUserMutation = useMutation({
+    mutationFn: ({ userId, reason }) => userManagementApi.banUser({ userId, reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
+      setBanFormData({ userId: "", reason: "" });
+    },
+  });
+
+  const unbanUserMutation = useMutation({
+    mutationFn: (userId) => userManagementApi.unbanUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
     },
   });
 
@@ -90,6 +159,108 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* SHOP CREATION/MANAGEMENT */}
+      <div className="card bg-base-100 shadow-xl">
+        <div className="card-body space-y-4">
+          <h2 className="card-title text-2xl">Your Shop</h2>
+          {myShopLoading ? (
+            <div className="flex justify-center py-8">
+              <span className="loading loading-spinner loading-lg" />
+            </div>
+          ) : myShopData?.shop ? (
+            <>
+              <div className="alert alert-info">
+                <div>
+                  <h3 className="font-bold">{myShopData.shop.name}</h3>
+                  <div className="text-sm">{myShopData.shop.description}</div>
+                  <div className="text-xs mt-1">
+                    ID: {myShopData.shop._id}
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="form-control md:col-span-2">
+                  <span className="label-text mb-1">Shop Name</span>
+                  <input
+                    className="input input-bordered"
+                    value={shopFormData.name}
+                    onChange={(e) => setShopFormData({ ...shopFormData, name: e.target.value })}
+                    placeholder="My Shop"
+                  />
+                </label>
+
+                <label className="form-control md:col-span-2">
+                  <span className="label-text mb-1">Shop Description</span>
+                  <textarea
+                    className="textarea textarea-bordered"
+                    value={shopFormData.description}
+                    onChange={(e) => setShopFormData({ ...shopFormData, description: e.target.value })}
+                    placeholder="Describe your shop..."
+                    rows="3"
+                  ></textarea>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => updateShopMutation.mutate({ id: myShopData.shop._id, payload: shopFormData })}
+                  disabled={updateShopMutation.isPending}
+                  type="button"
+                >
+                  {updateShopMutation.isPending ? (
+                    <span className="loading loading-spinner loading-sm" />
+                  ) : (
+                    "Update Shop"
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-base-content/70">Create your shop to start selling products.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="form-control md:col-span-2">
+                  <span className="label-text mb-1">Shop Name</span>
+                  <input
+                    className="input input-bordered"
+                    value={shopFormData.name}
+                    onChange={(e) => setShopFormData({ ...shopFormData, name: e.target.value })}
+                    placeholder="My Shop"
+                  />
+                </label>
+
+                <label className="form-control md:col-span-2">
+                  <span className="label-text mb-1">Shop Description</span>
+                  <textarea
+                    className="textarea textarea-bordered"
+                    value={shopFormData.description}
+                    onChange={(e) => setShopFormData({ ...shopFormData, description: e.target.value })}
+                    placeholder="Describe your shop..."
+                    rows="3"
+                  ></textarea>
+                </label>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => createShopMutation.mutate(shopFormData)}
+                  disabled={createShopMutation.isPending || !shopFormData.name.trim()}
+                  type="button"
+                >
+                  {createShopMutation.isPending ? (
+                    <span className="loading loading-spinner loading-sm" />
+                  ) : (
+                    "Create Shop"
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* HOMEPAGE BANNER EDITOR */}
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body space-y-4">
@@ -213,6 +384,127 @@ function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* USERS MANAGEMENT - SUPER ADMIN ONLY */}
+      {isSuperAdmin && (
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body space-y-4">
+            <h2 className="card-title">User Management (Super Admin)</h2>
+
+            {usersLoading ? (
+              <div className="flex justify-center py-8">
+                <span className="loading loading-spinner loading-lg" />
+              </div>
+            ) : usersData?.users && usersData.users.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Joined</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usersData.users.map((user) => (
+                      <tr key={user._id}>
+                        <td>
+                          <span className="font-medium">{user.name}</span>
+                        </td>
+                        <td>{user.email}</td>
+                        <td>
+                          <div className={`badge ${user.role === 'admin' ? 'badge-warning' : 'badge-ghost'}`}>
+                            {capitalizeText(user.role)}
+                          </div>
+                        </td>
+                        <td>
+                          <div className={`badge ${user.isBanned ? 'badge-error' : 'badge-success'}`}>
+                            {user.isBanned ? 'Banned' : 'Active'}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="text-sm opacity-60">
+                            {formatDate(user.createdAt)}
+                          </span>
+                        </td>
+                        <td>
+                          {user.isBanned ? (
+                            <button
+                              className="btn btn-xs btn-info gap-1"
+                              onClick={() => unbanUserMutation.mutate(user._id)}
+                              disabled={unbanUserMutation.isPending}
+                            >
+                              <CheckCircleIcon className="size-4" />
+                              Unban
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-xs btn-error gap-1"
+                              onClick={() => setBanFormData({ userId: user._id, reason: "" })}
+                            >
+                              <BanIcon className="size-4" />
+                              Ban
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-base-content/60">
+                No users found
+              </div>
+            )}
+
+            {/* Ban Modal */}
+            {banFormData.userId && (
+              <div className="modal modal-open">
+                <div className="modal-box">
+                  <h3 className="font-bold text-lg">Ban User</h3>
+                  <p className="py-4 text-sm opacity-70">
+                    Enter reason for banning this user:
+                  </p>
+                  <textarea
+                    className="textarea textarea-bordered w-full"
+                    value={banFormData.reason}
+                    onChange={(e) => setBanFormData({ ...banFormData, reason: e.target.value })}
+                    placeholder="Reason for ban..."
+                    rows="3"
+                  ></textarea>
+                  <div className="modal-action">
+                    <button
+                      className="btn"
+                      onClick={() => setBanFormData({ userId: "", reason: "" })}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="btn btn-error"
+                      onClick={() => banUserMutation.mutate(banFormData)}
+                      disabled={banUserMutation.isPending}
+                    >
+                      {banUserMutation.isPending ? (
+                        <span className="loading loading-spinner loading-sm" />
+                      ) : (
+                        "Confirm Ban"
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div
+                  className="modal-backdrop"
+                  onClick={() => setBanFormData({ userId: "", reason: "" })}
+                ></div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* RECENT ORDERS */}
       <div className="card bg-base-100 shadow-xl">

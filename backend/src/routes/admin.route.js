@@ -2,7 +2,8 @@ import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import {
     adminOnly,
-    protectRoute
+    protectRoute,
+    superAdminOnly
 } from "../middleware/auth.middleware.js";
 import {
     createProduct,
@@ -12,7 +13,11 @@ import {
     getAllOrders,
     updateOrderStatus,
     getAllCustomers,
-    getDashboardStats
+    getDashboardStats,
+    migrateProductsToDefaultShop,
+    getAllUsers,
+    banUser,
+    unbanUser,
 } from "../controllers/admin.controller.js";
 import { upsertHomeBanner } from "../controllers/banner.controller.js";
 
@@ -37,10 +42,15 @@ router.get("/customers", getAllCustomers);
 
 router.get("/stats", getDashboardStats);
 
-router.put("/banner", upsertHomeBanner);
-
 router.delete("/products/:id", deleteProduct);
 
+router.post("/migrate-products", migrateProductsToDefaultShop);
 
+// Super admin only routes
+router.put("/banner", protectRoute, superAdminOnly, upsertHomeBanner);
+
+router.get("/users", protectRoute, superAdminOnly, getAllUsers);
+router.patch("/users/:userId/ban", protectRoute, superAdminOnly, banUser);
+router.patch("/users/:userId/unban", protectRoute, superAdminOnly, unbanUser);
 
 export default router;
