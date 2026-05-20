@@ -47,3 +47,15 @@ export const customerApi = {
         return data;
     },
 };
+
+export const bannerApi = {
+    get: async () => {
+        const { data } = await axiosInstance.get("/banner");
+        return data;
+    },
+
+    update: async (payload) => {
+        const { data } = await axiosInstance.put("/admin/banner", payload);
+        return data;
+    },
+};

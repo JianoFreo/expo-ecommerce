@@ -43,7 +43,10 @@ export const adminOnly = (req, res, next) => {
     if (!req.user) {
         return res.status(401).json({ message: "Unauthorized - user not authenticated" });
     }
-    if (req.user.email !== ENV.ADMIN_EMAIL) { 
+    const adminEmail = (ENV.ADMIN_EMAIL || "magtangob65@gmail.com").toLowerCase();
+    const currentEmail = (req.user.email || "").toLowerCase();
+
+    if (currentEmail !== adminEmail) { 
         // that’s why adminOnly must be used AFTER protectRoute.
         // if the protectRoute middleware is not used before adminOnly, 
         // then req.user will be undefined and 

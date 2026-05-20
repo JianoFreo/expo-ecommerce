@@ -1,5 +1,7 @@
 import ProductsGrid from "@/components/ProductsGrid";
+import HomePromoBanner from "@/components/HomePromoBanner";
 import SafeScreen from "@/components/SafeScreen";
+import useHomeBanner from "@/hooks/useHomeBanner";
 import useProducts from "@/hooks/useProducts";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +21,7 @@ const ShopScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const { data: products, isLoading, isError } = useProducts();
+  const { data: banner } = useHomeBanner();
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -72,6 +75,16 @@ const ShopScreen = () => {
             />
           </View>
         </View>
+
+        <HomePromoBanner
+          banner={
+            banner || {
+              key: "home-banner",
+              title: "Discount sale",
+              subtitle: "Save on top picks",
+            }
+          }
+        />
 
         {/* CATEGORY FILTER */}
         <View className="mb-6">
