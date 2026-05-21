@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "@clerk/clerk-expo";
 
 const CATEGORIES = ["Electronics", "Accessories", "Fashion", "Sports", "Books", "Home", "Beauty", "Toys"];
 
@@ -37,17 +38,19 @@ const defaultForm: ProductForm = {
 };
 
 export default function SellerProducts() {
+  const { user } = useUser();
   const queryClient = useQueryClient();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
   const [form, setForm] = React.useState<ProductForm>(defaultForm);
 
   const { data: products, isLoading, error } = useQuery({
-    queryKey: ["seller-products"],
+    queryKey: ["seller-products", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/seller/products");
       return res.data as Product[];
     },
+    enabled: !!user?.id,
   });
 
   const upsertMutation = useMutation({
@@ -72,9 +75,9 @@ export default function SellerProducts() {
     },
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["seller-products"] }),
-        queryClient.invalidateQueries({ queryKey: ["seller-dashboard-stats"] }),
-        queryClient.invalidateQueries({ queryKey: ["seller-shop-stats"] }),
+        queryClient.invalidateQueries({ queryKey: ["seller-products", user?.id] }),
+        queryClient.invalidateQueries({ queryKey: ["seller-dashboard-stats", user?.id] }),
+        queryClient.invalidateQueries({ queryKey: ["seller-shop-stats", user?.id] }),
       ]);
       setModalVisible(false);
       setEditingProduct(null);
@@ -89,9 +92,9 @@ export default function SellerProducts() {
     mutationFn: async (id: string) => axiosInstance.delete(`/seller/products/${id}`),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["seller-products"] }),
-        queryClient.invalidateQueries({ queryKey: ["seller-dashboard-stats"] }),
-        queryClient.invalidateQueries({ queryKey: ["seller-shop-stats"] }),
+        queryClient.invalidateQueries({ queryKey: ["seller-products", user?.id] }),
+        queryClient.invalidateQueries({ queryKey: ["seller-dashboard-stats", user?.id] }),
+        queryClient.invalidateQueries({ queryKey: ["seller-shop-stats", user?.id] }),
       ]);
     },
     onError: (err: any) => {

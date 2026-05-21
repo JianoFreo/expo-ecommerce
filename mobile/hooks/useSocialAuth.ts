@@ -1,4 +1,4 @@
-import { useSSO } from "@clerk/clerk-expo";
+import { useAuth, useSSO } from "@clerk/clerk-expo";
 import { useState } from "react";
 import { Alert } from "react-native";
 import { router } from "expo-router";
@@ -7,6 +7,7 @@ import axiosInstance from "@/lib/axios";
 
 function useSocialAuth() {
   const [loadingStrategy, setLoadingStrategy] = useState<string | null>(null);
+  const { isSignedIn, signOut } = useAuth();
   const { startSSOFlow } = useSSO();
   const { selectedRole } = useRole();
 
@@ -14,6 +15,10 @@ function useSocialAuth() {
     setLoadingStrategy(strategy);
 
     try {
+      if (isSignedIn) {
+        await signOut();
+      }
+
       const { createdSessionId, setActive } = await startSSOFlow({ strategy });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });

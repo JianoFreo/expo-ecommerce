@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 
 interface DashboardStats {
   totalProducts: number;
@@ -14,12 +15,14 @@ interface DashboardStats {
 }
 
 export default function SellerDashboard() {
+  const { user } = useUser();
   const { data: stats, isLoading, error } = useQuery({
-    queryKey: ["seller-dashboard-stats"],
+    queryKey: ["seller-dashboard-stats", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/seller/stats");
       return res.data as DashboardStats;
     },
+    enabled: !!user?.id,
   });
 
   if (isLoading) {

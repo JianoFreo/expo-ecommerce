@@ -4,6 +4,7 @@ import SafeScreen from "@/components/SafeScreen";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "@clerk/clerk-expo";
 
 interface Analytics {
   totalSales: number;
@@ -13,12 +14,14 @@ interface Analytics {
 }
 
 export default function SellerAnalytics() {
+  const { user } = useUser();
   const { data: analytics, isLoading } = useQuery({
-    queryKey: ["seller-analytics"],
+    queryKey: ["seller-analytics", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/seller/analytics");
       return res.data as Analytics;
     },
+    enabled: !!user?.id,
   });
 
   if (isLoading) {
@@ -56,7 +59,7 @@ export default function SellerAnalytics() {
     {
       label: "Conversion Rate",
       value: `${analytics?.conversionRate || 0}%`,
-      icon: "percent-outline",
+      icon: "stats-chart-outline",
       color: "#f59e0b",
       bg: "bg-yellow-500/20",
     },
@@ -106,10 +109,14 @@ export default function SellerAnalytics() {
                 </View>
                 <View>
                   <Text className="text-text-secondary text-sm">Revenue Trend</Text>
-                  <Text className="text-text-primary font-bold">Growing</Text>
+                  <Text className="text-text-primary font-bold">
+                    {analytics?.totalOrders ? "No trend data" : "No products yet"}
+                  </Text>
                 </View>
               </View>
-              <Text className="text-green-600 font-bold">+12%</Text>
+              <Text className="text-text-secondary font-bold">
+                {analytics?.totalOrders ? `${analytics?.conversionRate || 0}%` : "N/A"}
+              </Text>
             </View>
 
             <View className="flex-row items-center justify-between">

@@ -5,14 +5,17 @@ import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { Order } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function SellerOrders() {
+  const { user } = useUser();
   const { data: orders, isLoading } = useQuery({
-    queryKey: ["seller-orders"],
+    queryKey: ["seller-orders", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/seller/orders");
       return res.data as Order[];
     },
+    enabled: !!user?.id,
   });
 
   if (isLoading) {

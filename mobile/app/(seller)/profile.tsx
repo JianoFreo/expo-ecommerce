@@ -17,19 +17,21 @@ export default function SellerProfile() {
   const [shopDescription, setShopDescription] = React.useState("");
 
   const { data: shop, isLoading } = useQuery({
-    queryKey: ["seller-shop"],
+    queryKey: ["seller-shop", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/user/profile");
       return res.data.shop as Shop;
     },
+    enabled: !!user?.id,
   });
 
   const { data: stats } = useQuery({
-    queryKey: ["seller-shop-stats"],
+    queryKey: ["seller-shop-stats", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/seller/stats");
       return res.data as { totalProducts: number; totalOrders: number; totalRevenue: number };
     },
+    enabled: !!user?.id,
   });
 
   React.useEffect(() => {
@@ -46,7 +48,7 @@ export default function SellerProfile() {
       });
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["seller-shop"] });
+      await queryClient.invalidateQueries({ queryKey: ["seller-shop", user?.id] });
       setEditVisible(false);
     },
     onError: (err: any) => {

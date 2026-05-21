@@ -233,7 +233,7 @@ const CartScreen = () => {
                 {/* product image */}
                 <View className="relative">
                   <Image
-                    source={item.product.images[0]}
+                    source={item.product?.images?.[0] || undefined}
                     className="bg-background-lighter"
                     contentFit="cover"
                     style={{ width: 112, height: 112, borderRadius: 16 }}
@@ -249,14 +249,14 @@ const CartScreen = () => {
                       className="text-text-primary font-bold text-lg leading-tight"
                       numberOfLines={2}
                     >
-                      {item.product.name}
+                      {item.product?.name || "Unknown product"}
                     </Text>
                     <View className="flex-row items-center mt-2">
                       <Text className="text-primary font-bold text-2xl">
-                        ${(item.product.price * item.quantity).toFixed(2)}
+                        ${((item.product?.price || 0) * item.quantity).toFixed(2)}
                       </Text>
                       <Text className="text-text-secondary text-sm ml-2">
-                        ${item.product.price.toFixed(2)} each
+                        ${(item.product?.price || 0).toFixed(2)} each
                       </Text>
                     </View>
                   </View>
@@ -265,7 +265,7 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="bg-background-lighter rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleQuantityChange(item.product._id, item.quantity, -1)}
+                      onPress={() => handleQuantityChange(item.product?._id || item._id, item.quantity, -1)}
                       disabled={isUpdating}
                     >
                       {isUpdating ? (
@@ -282,7 +282,7 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="bg-primary rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleQuantityChange(item.product._id, item.quantity, 1)}
+                      onPress={() => handleQuantityChange(item.product?._id || item._id, item.quantity, 1)}
                       disabled={isUpdating}
                     >
                       {isUpdating ? (
@@ -295,7 +295,7 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="ml-auto bg-red-500/10 rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleRemoveItem(item.product._id, item.product.name)}
+                      onPress={() => handleRemoveItem(item.product?._id || item._id, item.product?.name || "this item")}
                       disabled={isRemoving}
                     >
                       <Ionicons name="trash-outline" size={18} color="#EF4444" />
