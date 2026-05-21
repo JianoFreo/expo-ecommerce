@@ -12,8 +12,9 @@ export function useAuthManager() {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      setSelectedRole(null);
-      router.replace("/role-selection");
+      // Keep auth flow simple: go straight to sign-in page after logout.
+      setSelectedRole("buyer");
+      router.replace("/(auth)");
     }
   };
 

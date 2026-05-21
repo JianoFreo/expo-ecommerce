@@ -7,33 +7,38 @@ import { User } from '../models/user.model.js';
 const SUPER_ADMIN_EMAIL = 'magtangob65@gmail.com'.toLowerCase();
 const MIGRATED_SELLER_EMAIL = 'jianofreomagtangob@gmail.com'.toLowerCase();
 
+function parseNumber(value, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+async function getAccessibleShopIdsForSeller(user) {
+  const ownShops = await Shop.find({ owner: user._id }).select('_id');
+  if (ownShops.length > 0) {
+    return ownShops.map((s) => s._id);
+  }
+
+  // Temporary fallback for migrated seller account
+  if ((user.email || '').toLowerCase() === MIGRATED_SELLER_EMAIL) {
+    const adminUser = await User.findOne({ email: SUPER_ADMIN_EMAIL });
+    if (!adminUser) return [];
+    const adminShops = await Shop.find({ owner: adminUser._id }).select('_id');
+    return adminShops.map((s) => s._id);
+  }
+
+  return [];
+}
+
 export async function getSellerProducts(req, res) {
   try {
     const user = req.user;
 
-    // Get seller's shop
-    const shop = await Shop.findOne({ owner: user._id });
-    let products = [];
+    const shopIds = await getAccessibleShopIdsForSeller(user);
+    if (shopIds.length === 0) return res.status(200).json([]);
 
-    if (shop) {
-      // Get all products for this shop
-      products = await Product.find({ shop: shop._id })
-        .populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } })
-        .sort({ createdAt: -1 });
-    } else {
-      // Temporary fallback: if this user is the migrated seller account, include products
-      // that currently belong to the super-admin's shops so mobile mirrors admin web view.
-      if ((user.email || '').toLowerCase() === MIGRATED_SELLER_EMAIL) {
-        const adminUser = await User.findOne({ email: SUPER_ADMIN_EMAIL });
-        if (adminUser) {
-          const adminShops = await Shop.find({ owner: adminUser._id }).select('_id');
-          const adminShopIds = adminShops.map((s) => s._id);
-          products = await Product.find({ shop: { $in: adminShopIds } })
-            .populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } })
-            .sort({ createdAt: -1 });
-        }
-      }
-    }
+    const products = await Product.find({ shop: { $in: shopIds } })
+      .populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } })
+      .sort({ createdAt: -1 });
 
     res.status(200).json(products);
   } catch (error) {
@@ -46,31 +51,14 @@ export async function getSellerOrders(req, res) {
   try {
     const user = req.user;
 
-    // Get seller's shop
-    const shop = await Shop.findOne({ owner: user._id });
-    let orders = [];
+    const shopIds = await getAccessibleShopIdsForSeller(user);
+    if (shopIds.length === 0) return res.status(200).json([]);
 
-    if (shop) {
-      // Get all orders that contain products from this shop
-      orders = await Order.find({ 'orderItems.product': { $in: await getShopProductIds(shop._id) } })
-        .populate('user', 'name email')
-        .populate('orderItems.product')
-        .sort({ createdAt: -1 });
-    } else {
-      // Fallback for migrated seller: include orders that contain products from admin shops
-      if ((user.email || '').toLowerCase() === MIGRATED_SELLER_EMAIL) {
-        const adminUser = await User.findOne({ email: SUPER_ADMIN_EMAIL });
-        if (adminUser) {
-          const adminShops = await Shop.find({ owner: adminUser._id }).select('_id');
-          const adminShopIds = adminShops.map((s) => s._id);
-          const adminProductIds = await getShopProductIdsList(adminShopIds);
-          orders = await Order.find({ 'orderItems.product': { $in: adminProductIds } })
-            .populate('user', 'name email')
-            .populate('orderItems.product')
-            .sort({ createdAt: -1 });
-        }
-      }
-    }
+    const productIds = await getShopProductIdsList(shopIds);
+    const orders = await Order.find({ 'orderItems.product': { $in: productIds } })
+      .populate('user', 'name email')
+      .populate('orderItems.product')
+      .sort({ createdAt: -1 });
 
     res.status(200).json(orders);
   } catch (error) {
@@ -83,49 +71,29 @@ export async function getSellerStats(req, res) {
   try {
     const user = req.user;
 
-    // Get seller's shop
-    const shop = await Shop.findOne({ owner: user._id });
-    if (!shop) {
-      // Fallback: if migrated seller, count products from admin shops
-      if ((user.email || '').toLowerCase() === MIGRATED_SELLER_EMAIL) {
-        const adminUser = await User.findOne({ email: SUPER_ADMIN_EMAIL });
-        if (adminUser) {
-          const adminShops = await Shop.find({ owner: adminUser._id }).select('_id');
-          const adminShopIds = adminShops.map((s) => s._id);
-          const totalProducts = await Product.countDocuments({ shop: { $in: adminShopIds } });
-          const shopProductIds = await Product.find({ shop: { $in: adminShopIds } }).select('_id');
-          const productIds = shopProductIds.map((p) => p._id);
-          const orders = await Order.find({ 'orderItems.product': { $in: productIds } });
-          const totalOrders = orders.length;
-          const pendingOrders = orders.filter((o) => o.status === 'pending').length;
-
-          return res.status(200).json({ totalProducts, totalOrders, pendingOrders });
-        }
-      }
-
-      return res.status(200).json({
-        totalProducts: 0,
-        totalOrders: 0,
-        pendingOrders: 0,
-      });
+    const shopIds = await getAccessibleShopIdsForSeller(user);
+    if (shopIds.length === 0) {
+      return res.status(200).json({ totalProducts: 0, totalOrders: 0, pendingOrders: 0, totalRevenue: 0 });
     }
 
-    // Get products count
-    const totalProducts = await Product.countDocuments({ shop: shop._id });
-
-    // Get shop product IDs for order filtering
-    const shopProductIds = await getShopProductIds(shop._id);
-
-    // Get orders containing shop products
+    const totalProducts = await Product.countDocuments({ shop: { $in: shopIds } });
+    const shopProductIds = await getShopProductIdsList(shopIds);
     const orders = await Order.find({ 'orderItems.product': { $in: shopProductIds } });
 
     const totalOrders = orders.length;
     const pendingOrders = orders.filter((o) => o.status === 'pending').length;
+    const totalRevenue = orders.reduce((sum, order) => {
+      const sellerItems = order.orderItems.filter((item) =>
+        shopProductIds.some((id) => id.toString() === item.product.toString())
+      );
+      return sum + sellerItems.reduce((inner, item) => inner + item.price * item.quantity, 0);
+    }, 0);
 
     res.status(200).json({
       totalProducts,
       totalOrders,
       pendingOrders,
+      totalRevenue: Math.round(totalRevenue * 100) / 100,
     });
   } catch (error) {
     console.error('Error fetching seller stats:', error);
@@ -137,9 +105,8 @@ export async function getSellerAnalytics(req, res) {
   try {
     const user = req.user;
 
-    // Get seller's shop
-    const shop = await Shop.findOne({ owner: user._id });
-    if (!shop) {
+    const shopIds = await getAccessibleShopIdsForSeller(user);
+    if (shopIds.length === 0) {
       return res.status(200).json({
         totalSales: 0,
         totalOrders: 0,
@@ -149,7 +116,7 @@ export async function getSellerAnalytics(req, res) {
     }
 
     // Get shop product IDs for order filtering
-    const shopProductIds = await getShopProductIds(shop._id);
+    const shopProductIds = await getShopProductIdsList(shopIds);
 
     // Get completed orders
     const orders = await Order.find({ 'orderItems.product': { $in: shopProductIds } });
@@ -181,10 +148,120 @@ export async function getSellerAnalytics(req, res) {
   }
 }
 
-// Helper function to get all product IDs for a shop
-async function getShopProductIds(shopId) {
-  const products = await Product.find({ shop: shopId }).select('_id');
-  return products.map((p) => p._id);
+export async function updateSellerShop(req, res) {
+  try {
+    const user = req.user;
+    const { name, description, bannerImage } = req.body;
+
+    let shop = await Shop.findOne({ owner: user._id });
+    if (!shop) {
+      shop = await Shop.create({
+        owner: user._id,
+        name: name || `${user.name || 'Seller'}'s Shop`,
+        description: description || '',
+        bannerImage: bannerImage || '',
+      });
+    } else {
+      if (name !== undefined) shop.name = name;
+      if (description !== undefined) shop.description = description;
+      if (bannerImage !== undefined) shop.bannerImage = bannerImage;
+      await shop.save();
+    }
+
+    return res.status(200).json(shop);
+  } catch (error) {
+    console.error('Error updating seller shop:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function createSellerProduct(req, res) {
+  try {
+    const user = req.user;
+    const { name, description, category, images = [] } = req.body;
+    const price = parseNumber(req.body.price, NaN);
+    const stock = parseNumber(req.body.stock, NaN);
+
+    if (!name || !description || !category || Number.isNaN(price) || Number.isNaN(stock)) {
+      return res.status(400).json({ message: 'name, description, category, price, and stock are required' });
+    }
+
+    let shop = await Shop.findOne({ owner: user._id });
+    if (!shop) {
+      shop = await Shop.create({ owner: user._id, name: `${user.name || 'Seller'}'s Shop`, description: '' });
+    }
+
+    const product = await Product.create({
+      name,
+      description,
+      category,
+      price,
+      stock,
+      images,
+      shop: shop._id,
+    });
+
+    return res.status(201).json(product);
+  } catch (error) {
+    console.error('Error creating seller product:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function updateSellerProduct(req, res) {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+
+    const shopIds = await getAccessibleShopIdsForSeller(user);
+    const product = await Product.findOne({ _id: id, shop: { $in: shopIds } });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    const { name, description, category, images } = req.body;
+    if (name !== undefined) product.name = name;
+    if (description !== undefined) product.description = description;
+    if (category !== undefined) product.category = category;
+    if (images !== undefined) product.images = images;
+
+    if (req.body.price !== undefined) {
+      const price = parseNumber(req.body.price, NaN);
+      if (Number.isNaN(price)) return res.status(400).json({ message: 'Invalid price' });
+      product.price = price;
+    }
+
+    if (req.body.stock !== undefined) {
+      const stock = parseNumber(req.body.stock, NaN);
+      if (Number.isNaN(stock)) return res.status(400).json({ message: 'Invalid stock' });
+      product.stock = stock;
+    }
+
+    await product.save();
+    return res.status(200).json(product);
+  } catch (error) {
+    console.error('Error updating seller product:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function deleteSellerProduct(req, res) {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+
+    const shopIds = await getAccessibleShopIdsForSeller(user);
+    const product = await Product.findOne({ _id: id, shop: { $in: shopIds } });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    await Product.deleteOne({ _id: id });
+    return res.status(200).json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting seller product:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 }
 
 // Helper to get product IDs for multiple shops

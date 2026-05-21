@@ -1,7 +1,7 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Modal, TextInput, Alert } from "react-native";
 import SafeScreen from "@/components/SafeScreen";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { Shop } from "@/types";
 import { useAuthManager } from "@/hooks/useAuthManager";
@@ -11,11 +11,46 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function SellerProfile() {
   const { user } = useUser();
+  const queryClient = useQueryClient();
+  const [editVisible, setEditVisible] = React.useState(false);
+  const [shopName, setShopName] = React.useState("");
+  const [shopDescription, setShopDescription] = React.useState("");
+
   const { data: shop, isLoading } = useQuery({
     queryKey: ["seller-shop"],
     queryFn: async () => {
       const res = await axiosInstance.get("/user/profile");
       return res.data.shop as Shop;
+    },
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ["seller-shop-stats"],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/seller/stats");
+      return res.data as { totalProducts: number; totalOrders: number; totalRevenue: number };
+    },
+  });
+
+  React.useEffect(() => {
+    setShopName(shop?.name || "");
+    setShopDescription(shop?.description || "");
+  }, [shop?.name, shop?.description]);
+
+  const updateShopMutation = useMutation({
+    mutationFn: async () => {
+      if (!shopName.trim()) throw new Error("Shop name is required.");
+      return axiosInstance.patch("/seller/shop", {
+        name: shopName.trim(),
+        description: shopDescription.trim(),
+      });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["seller-shop"] });
+      setEditVisible(false);
+    },
+    onError: (err: any) => {
+      Alert.alert("Update failed", err?.response?.data?.message || err?.message || "Could not update shop");
     },
   });
 
@@ -34,7 +69,6 @@ export default function SellerProfile() {
   return (
     <SafeScreen>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Profile Header */}
         <View className="px-6 pt-6 pb-4">
           <View className="bg-surface rounded-2xl p-6 items-center">
             <Image
@@ -54,7 +88,6 @@ export default function SellerProfile() {
           </View>
         </View>
 
-        {/* Shop Information */}
         <View className="px-6 mb-6">
           <Text className="text-text-primary font-bold text-lg mb-3">Shop Details</Text>
           <View className="bg-surface rounded-2xl p-5 gap-4">
@@ -72,14 +105,16 @@ export default function SellerProfile() {
               </View>
             </View>
 
-            <TouchableOpacity className="bg-green-600 rounded-xl p-3.5 items-center flex-row justify-center gap-2">
+            <TouchableOpacity
+              className="bg-green-600 rounded-xl p-3.5 items-center flex-row justify-center gap-2"
+              onPress={() => setEditVisible(true)}
+            >
               <Ionicons name="create-outline" size={18} color="#fff" />
               <Text className="text-white font-bold">Edit Shop Profile</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Quick Stats */}
         <View className="px-6 mb-6">
           <Text className="text-text-primary font-bold text-lg mb-3">Quick Stats</Text>
           <View className="flex-row gap-3">
@@ -88,26 +123,25 @@ export default function SellerProfile() {
                 <Ionicons name="cube-outline" size={20} color="#3b82f6" />
               </View>
               <Text className="text-text-secondary text-xs">Products</Text>
-              <Text className="text-text-primary font-bold text-lg mt-1">0</Text>
+              <Text className="text-text-primary font-bold text-lg mt-1">{stats?.totalProducts || 0}</Text>
             </View>
             <View className="flex-1 bg-surface rounded-2xl p-4 items-center">
               <View className="bg-green-500/20 p-2 rounded-lg mb-2">
                 <Ionicons name="cart-outline" size={20} color="#10b981" />
               </View>
               <Text className="text-text-secondary text-xs">Orders</Text>
-              <Text className="text-text-primary font-bold text-lg mt-1">0</Text>
+              <Text className="text-text-primary font-bold text-lg mt-1">{stats?.totalOrders || 0}</Text>
             </View>
             <View className="flex-1 bg-surface rounded-2xl p-4 items-center">
               <View className="bg-purple-500/20 p-2 rounded-lg mb-2">
                 <Ionicons name="trending-up-outline" size={20} color="#a855f7" />
               </View>
               <Text className="text-text-secondary text-xs">Revenue</Text>
-              <Text className="text-text-primary font-bold text-lg mt-1">$0</Text>
+              <Text className="text-text-primary font-bold text-lg mt-1">${stats?.totalRevenue?.toLocaleString() || 0}</Text>
             </View>
           </View>
         </View>
 
-        {/* Account Actions */}
         <View className="px-6 gap-3 mb-6">
           <Text className="text-text-primary font-bold text-lg">Account</Text>
 
@@ -138,6 +172,45 @@ export default function SellerProfile() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <Modal animationType="slide" transparent visible={editVisible} onRequestClose={() => setEditVisible(false)}>
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-surface rounded-t-3xl p-5 gap-3">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-text-primary text-xl font-bold">Edit Shop</Text>
+              <TouchableOpacity onPress={() => setEditVisible(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              value={shopName}
+              onChangeText={setShopName}
+              placeholder="Shop name"
+              placeholderTextColor="#8a8a8a"
+              className="bg-black/20 text-white rounded-xl px-4 py-3"
+            />
+            <TextInput
+              value={shopDescription}
+              onChangeText={setShopDescription}
+              placeholder="Description"
+              placeholderTextColor="#8a8a8a"
+              className="bg-black/20 text-white rounded-xl px-4 py-3 min-h-24"
+              multiline
+            />
+
+            <TouchableOpacity
+              onPress={() => updateShopMutation.mutate()}
+              disabled={updateShopMutation.isPending}
+              className="bg-green-600 rounded-xl py-3 items-center"
+            >
+              <Text className="text-white font-bold">
+                {updateShopMutation.isPending ? "Saving..." : "Save Shop"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeScreen>
   );
 }

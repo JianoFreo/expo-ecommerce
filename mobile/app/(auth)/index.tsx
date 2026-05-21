@@ -1,19 +1,17 @@
 import useSocialAuth from "@/hooks/useSocialAuth";
 import { useRole } from "@/context/RoleContext";
 import { View, Text, Image, TouchableOpacity, ActivityIndicator } from "react-native";
-import { router } from "expo-router";
 import { useEffect } from "react";
 
 const AuthScreen = () => {
   const { loadingStrategy, handleSocialAuth } = useSocialAuth();
-  const { selectedRole } = useRole();
+  const { selectedRole, setSelectedRole } = useRole();
 
   useEffect(() => {
-    // If no role selected, redirect to role selection
     if (!selectedRole) {
-      router.replace("/role-selection");
+      setSelectedRole("buyer");
     }
-  }, [selectedRole]);
+  }, [selectedRole, setSelectedRole]);
 
   if (!selectedRole) {
     return (

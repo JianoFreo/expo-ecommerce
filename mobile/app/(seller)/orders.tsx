@@ -28,13 +28,13 @@ export default function SellerOrders() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "delivered":
-        return { bg: "bg-green-500/20", text: "text-green-600", icon: "checkmark-circle-outline" };
+        return { bg: "bg-green-500/20", text: "text-green-600", icon: "checkmark-circle-outline", iconColor: "#16a34a" };
       case "shipped":
-        return { bg: "bg-blue-500/20", text: "text-blue-600", icon: "send-outline" };
+        return { bg: "bg-blue-500/20", text: "text-blue-600", icon: "send-outline", iconColor: "#2563eb" };
       case "pending":
-        return { bg: "bg-yellow-500/20", text: "text-yellow-600", icon: "time-outline" };
+        return { bg: "bg-yellow-500/20", text: "text-yellow-600", icon: "time-outline", iconColor: "#ca8a04" };
       default:
-        return { bg: "bg-gray-500/20", text: "text-gray-600", icon: "help-circle-outline" };
+        return { bg: "bg-gray-500/20", text: "text-gray-600", icon: "help-circle-outline", iconColor: "#4b5563" };
     }
   };
 
@@ -81,11 +81,11 @@ export default function SellerOrders() {
                     <View className="flex-1">
                       <Text className="font-bold text-text-primary">Order #{item._id.slice(-8).toUpperCase()}</Text>
                       <Text className="text-text-secondary text-xs mt-1">
-                        {item.items?.length || 0} item{(item.items?.length || 0) !== 1 ? "s" : ""}
+                        {item.orderItems?.length || 0} item{(item.orderItems?.length || 0) !== 1 ? "s" : ""}
                       </Text>
                     </View>
                     <View className={`${colorScheme.bg} px-3 py-1 rounded-full flex-row items-center gap-1`}>
-                      <Ionicons name={colorScheme.icon as any} size={14} color={colorScheme.text.split("-")[1]} />
+                      <Ionicons name={colorScheme.icon as any} size={14} color={colorScheme.iconColor} />
                       <Text className={`${colorScheme.text} font-bold text-xs capitalize`}>{item.status}</Text>
                     </View>
                   </View>

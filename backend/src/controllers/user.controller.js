@@ -7,7 +7,8 @@ export async function getCurrentUserProfile(req, res) {
         const user = req.user;
         
         // Determine if user is super-admin
-        const isSuperAdmin = user.email.toLowerCase() === 'magtangob65@gmail.com'.toLowerCase();
+        const superAdminEmail = (ENV.ADMIN_EMAIL || 'magtangob65@gmail.com').toLowerCase();
+        const isSuperAdmin = (user.email || '').toLowerCase() === superAdminEmail;
         if (isSuperAdmin && user.role !== 'super-admin') {
             user.role = 'super-admin';
             await user.save();

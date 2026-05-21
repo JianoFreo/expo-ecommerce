@@ -1,6 +1,4 @@
 import axios from "axios";
-import { useAuth } from "@clerk/clerk-expo";
-import * as SecureStore from "expo-secure-store";
 
 // Use environment variable or default to localhost for development
 const API_BASE_URL =
@@ -14,11 +12,17 @@ const axiosInstance = axios.create({
   },
 });
 
+let tokenGetter: null | (() => Promise<string | null>) = null;
+
+export function setAxiosTokenGetter(getter: null | (() => Promise<string | null>)) {
+  tokenGetter = getter;
+}
+
 // Request interceptor to add Clerk token
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
-      const token = await SecureStore.getItemAsync("clerk_token");
+      const token = tokenGetter ? await tokenGetter() : null;
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
