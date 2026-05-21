@@ -15,6 +15,8 @@ import {
   ScrollView,
   Dimensions,
 } from "react-native";
+import { Image as ExpoImage } from 'expo-image';
+import useProductReviews from "@/hooks/useProductReviews";
 
 const { width } = Dimensions.get("window");
 
@@ -25,6 +27,7 @@ const ProductDetailScreen = () => {
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
     useWishlist();
+  const { data: reviews } = useProductReviews(id);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -224,6 +227,45 @@ const ProductDetailScreen = () => {
           <View className="mb-8">
             <Text className="text-text-primary text-lg font-bold mb-3">Description</Text>
             <Text className="text-text-secondary text-base leading-6">{product.description}</Text>
+          </View>
+
+          {/* Reviews */}
+          <View className="px-6 mb-24">
+            <Text className="text-text-primary text-lg font-bold mb-3">Reviews</Text>
+            {(reviews && reviews.length > 0) ? (
+              reviews.map((rev: any) => (
+                <View key={rev._id} className="bg-surface rounded-2xl p-4 mb-3">
+                  <View className="flex-row items-center mb-2">
+                    <View className="w-10 h-10 rounded-full bg-primary items-center justify-center mr-3 overflow-hidden">
+                      {rev.userId?.imageUrl ? (
+                        <ExpoImage source={rev.userId.imageUrl} style={{ width: 40, height: 40 }} contentFit="cover" />
+                      ) : (
+                        <Text className="text-black font-bold">{(rev.userId?.name || 'U').charAt(0)}</Text>
+                      )}
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-text-primary font-semibold">{rev.userId?.name || 'User'}</Text>
+                      <Text className="text-text-secondary text-xs">{new Date(rev.createdAt).toLocaleDateString()}</Text>
+                    </View>
+                    <View className="flex-row items-center">
+                      <Ionicons name="star" size={14} color="#FFC107" />
+                      <Text className="text-text-primary font-bold ml-1">{rev.rating}</Text>
+                    </View>
+                  </View>
+                  {rev.comment ? <Text className="text-text-secondary mb-2">{rev.comment}</Text> : null}
+                  {/* Images */}
+                  {rev.images && rev.images.length > 0 && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
+                      {rev.images.map((img: string, i: number) => (
+                        <ExpoImage key={i} source={img} style={{ width: 120, height: 80, borderRadius: 8, marginRight: 8 }} contentFit="cover" />
+                      ))}
+                    </ScrollView>
+                  )}
+                </View>
+              ))
+            ) : (
+              <Text className="text-text-secondary">No reviews yet</Text>
+            )}
           </View>
         </View>
       </ScrollView>

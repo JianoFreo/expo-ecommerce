@@ -32,6 +32,6 @@ router.get("/wishlist", getWishlist);
 router.patch("/profile", updateProfile);
 
 // upload avatar (multipart/form-data) - field name: avatar
-router.post('/profile/avatar', upload.single('avatar'), protectRoute, uploadAvatar);
+router.post('/profile/avatar', protectRoute, upload.single('avatar'), uploadAvatar);
 
 export default router;

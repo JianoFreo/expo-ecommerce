@@ -22,6 +22,17 @@ const reviewSchema = new mongoose.Schema({
         min: 1,
         max: 5,
     },
+    comment: {
+        type: String,
+        default: "",
+    },
+    images: [{
+        type: String,
+    }],
+    verifiedPurchase: {
+        type: Boolean,
+        default: true,
+    },
 }, { timestamps: true });
 
 export const Review = mongoose.model("Review", reviewSchema);

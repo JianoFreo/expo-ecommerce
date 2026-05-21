@@ -1,10 +1,11 @@
 import { Review } from "../models/review.model.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
+import cloudinaryImport from '../config/cloudinary.js';
 
 export async function createReview(req, res) {
     try {
-        const { productId, orderId, rating } = req.body;
+        const { productId, orderId, rating, comment } = req.body;
         if (!rating || rating < 1 || rating > 5) {
             return res.status(400).json({ error: "Rating must be between 1 and 5" });
         }
@@ -38,10 +39,19 @@ export async function createReview(req, res) {
             return res.status(400).json({ error: "Product not found in the order" });
         }
 
-        // atomic update or create
+        // handle uploaded images (optional)
+        const cloudinary = (await import('../config/cloudinary.js')).default;
+        let imageUrls = [];
+        if (req.files && req.files.length) {
+            const uploadPromises = req.files.map((file) => cloudinary.uploader.upload(file.path, { folder: 'reviews' }));
+            const results = await Promise.all(uploadPromises);
+            imageUrls = results.map((r) => r.secure_url);
+        }
+
+        // atomic update or create (include comment and images)
         const review = await Review.findOneAndUpdate(
             { productId, userId: user._id },
-            { rating, orderId, productId, userId: user._id },
+            { rating, orderId, productId, userId: user._id, comment: comment || "", images: imageUrls, verifiedPurchase: true },
             { new: true, upsert: true, runValidators: true }
         );
 
@@ -66,6 +76,20 @@ export async function createReview(req, res) {
     } catch (error) {
         console.error("Error in createReview controller:", error);
         res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+export async function getReviewsByProduct(req, res) {
+    try {
+        const { productId } = req.params;
+        const reviews = await Review.find({ productId })
+            .populate('userId', 'name imageUrl')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ reviews });
+    } catch (error) {
+        console.error('Error fetching reviews by product:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 }
 
