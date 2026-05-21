@@ -12,7 +12,7 @@ export default function SuperAdminLayout() {
   const { isLoading, data } = useQuery({
     queryKey: ["user-profile-super-admin"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/api/user/profile");
+      const res = await axiosInstance.get("/user/profile");
       return res.data;
     },
     enabled: isSignedIn,
@@ -67,6 +67,13 @@ export default function SuperAdminLayout() {
         options={{
           title: "Shops",
           tabBarLabel: "Shops",
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarLabel: "Profile",
         }}
       />
     </Tabs>

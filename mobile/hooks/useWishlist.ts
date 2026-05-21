@@ -13,8 +13,13 @@ const useWishlist = () => {
   } = useQuery({
     queryKey: ["wishlist"],
     queryFn: async () => {
-      const { data } = await api.get<{ wishlist: Product[] }>("/users/wishlist");
-      return data.wishlist;
+      try {
+        const { data } = await api.get<{ wishlist: Product[] }>("/users/wishlist");
+        return data.wishlist || [];
+      } catch (error) {
+        console.warn("Failed to fetch wishlist:", error);
+        return [];
+      }
     },
   });
 

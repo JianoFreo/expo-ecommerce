@@ -9,7 +9,7 @@ export default function AdminOrders() {
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/api/admin/orders");
+      const res = await axiosInstance.get("/admin/orders");
       return res.data as { orders: Order[] };
     },
   });

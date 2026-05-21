@@ -111,10 +111,10 @@ const ProfileScreen = () => {
         <TouchableOpacity
           className="mx-6 mb-3 bg-surface rounded-2xl py-5 flex-row items-center justify-center border-2 border-orange-500/20"
           activeOpacity={0.8}
-          onPress={handleSwitchRole}
+          onPress={() => handleSwitchRole("seller")}
         >
           <Ionicons name="swap-horizontal-outline" size={22} color="#F59E0B" />
-          <Text className="text-orange-500 font-bold text-base ml-2">Switch Role</Text>
+          <Text className="text-orange-500 font-bold text-base ml-2">Switch to Seller</Text>
         </TouchableOpacity>
 
         {/* SIGNOUT BTN */}

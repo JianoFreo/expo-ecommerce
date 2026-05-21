@@ -9,7 +9,7 @@ export default function AdminShops() {
   const { data: shopsData, isLoading } = useQuery({
     queryKey: ["admin-shops"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/api/admin/shops");
+      const res = await axiosInstance.get("/admin/shops");
       return res.data as { shops: Shop[] };
     },
   });

@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
 import SafeScreen from "@/components/SafeScreen";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
+import { Ionicons } from "@expo/vector-icons";
 
-interface AnalyticsData {
+interface Analytics {
   totalSales: number;
   totalOrders: number;
   averageOrderValue: number;
@@ -15,9 +16,8 @@ export default function SellerAnalytics() {
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["seller-analytics"],
     queryFn: async () => {
-      // Replace with actual analytics endpoint
-      const res = await axiosInstance.get("/api/seller/analytics");
-      return res.data as AnalyticsData;
+      const res = await axiosInstance.get("/seller/analytics");
+      return res.data as Analytics;
     },
   });
 
@@ -31,46 +31,115 @@ export default function SellerAnalytics() {
     );
   }
 
+  const metrics = [
+    {
+      label: "Total Sales",
+      value: `$${analytics?.totalSales?.toLocaleString() || 0}`,
+      icon: "cash-outline",
+      color: "#10b981",
+      bg: "bg-green-500/20",
+    },
+    {
+      label: "Total Orders",
+      value: analytics?.totalOrders || 0,
+      icon: "cart-outline",
+      color: "#3b82f6",
+      bg: "bg-blue-500/20",
+    },
+    {
+      label: "Avg Order Value",
+      value: `$${analytics?.averageOrderValue?.toFixed(2) || 0}`,
+      icon: "trending-up-outline",
+      color: "#a855f7",
+      bg: "bg-purple-500/20",
+    },
+    {
+      label: "Conversion Rate",
+      value: `${analytics?.conversionRate || 0}%`,
+      icon: "percent-outline",
+      color: "#f59e0b",
+      bg: "bg-yellow-500/20",
+    },
+  ];
+
   return (
     <SafeScreen>
-      <View className="flex-1 bg-gray-50">
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Header */}
-        <View className="px-4 py-6 bg-white border-b border-gray-200">
-          <Text className="text-2xl font-bold text-black">Analytics</Text>
-          <Text className="text-gray-600 mt-1">View your sales performance</Text>
-        </View>
-
-        {/* Analytics Cards */}
-        <View className="px-4 py-4 gap-3">
-          <View className="bg-white rounded-lg p-4">
-            <Text className="text-gray-600 text-sm font-medium">Total Sales</Text>
-            <Text className="text-3xl font-bold text-green-600 mt-2">
-              ${analytics?.totalSales || 0}
-            </Text>
-          </View>
-
-          <View className="bg-white rounded-lg p-4">
-            <Text className="text-gray-600 text-sm font-medium">Total Orders</Text>
-            <Text className="text-3xl font-bold text-blue-600 mt-2">
-              {analytics?.totalOrders || 0}
-            </Text>
-          </View>
-
-          <View className="bg-white rounded-lg p-4">
-            <Text className="text-gray-600 text-sm font-medium">Average Order Value</Text>
-            <Text className="text-3xl font-bold text-purple-600 mt-2">
-              ${analytics?.averageOrderValue || 0}
-            </Text>
-          </View>
-
-          <View className="bg-white rounded-lg p-4">
-            <Text className="text-gray-600 text-sm font-medium">Conversion Rate</Text>
-            <Text className="text-3xl font-bold text-orange-600 mt-2">
-              {analytics?.conversionRate || 0}%
-            </Text>
+        <View className="px-6 pb-4 pt-6">
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-text-primary text-3xl font-bold tracking-tight">Analytics</Text>
+              <Text className="text-text-secondary text-sm mt-1">Performance insights</Text>
+            </View>
+            <TouchableOpacity className="bg-surface/50 p-3 rounded-full" activeOpacity={0.7}>
+              <Ionicons name="calendar-outline" size={24} color={"#fff"} />
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
+
+        {/* Metrics Grid */}
+        <View className="px-6 gap-3 mb-6">
+          {metrics.map((metric, idx) => (
+            <View key={idx} className={`${metric.bg} rounded-2xl p-5`}>
+              <View className="flex-row items-start justify-between">
+                <View className="flex-1">
+                  <Text className="text-text-secondary text-sm font-medium mb-3">{metric.label}</Text>
+                  <Text className="text-3xl font-bold text-text-primary">{metric.value}</Text>
+                </View>
+                <View className={`${metric.bg} p-3 rounded-xl`} style={{ backgroundColor: metric.color + "30" }}>
+                  <Ionicons name={metric.icon as any} size={24} color={metric.color} />
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Details Section */}
+        <View className="px-6">
+          <Text className="text-text-primary font-bold text-lg mb-3">Performance Summary</Text>
+          <View className="bg-surface rounded-2xl p-5 gap-4">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-3">
+                <View className="bg-green-500/20 p-2 rounded-lg">
+                  <Ionicons name="arrow-up-outline" size={20} color="#10b981" />
+                </View>
+                <View>
+                  <Text className="text-text-secondary text-sm">Revenue Trend</Text>
+                  <Text className="text-text-primary font-bold">Growing</Text>
+                </View>
+              </View>
+              <Text className="text-green-600 font-bold">+12%</Text>
+            </View>
+
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-3">
+                <View className="bg-blue-500/20 p-2 rounded-lg">
+                  <Ionicons name="people-outline" size={20} color="#3b82f6" />
+                </View>
+                <View>
+                  <Text className="text-text-secondary text-sm">Customer Activity</Text>
+                  <Text className="text-text-primary font-bold">Active</Text>
+                </View>
+              </View>
+              <Text className="text-blue-600 font-bold">{analytics?.totalOrders || 0} orders</Text>
+            </View>
+
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-3">
+                <View className="bg-purple-500/20 p-2 rounded-lg">
+                  <Ionicons name="bar-chart-outline" size={20} color="#a855f7" />
+                </View>
+                <View>
+                  <Text className="text-text-secondary text-sm">Overall Health</Text>
+                  <Text className="text-text-primary font-bold">Excellent</Text>
+                </View>
+              </View>
+              <Ionicons name="checkmark-circle-outline" size={24} color="#10b981" />
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </SafeScreen>
   );
 }

@@ -13,7 +13,7 @@ export default function SellerLayout() {
   const { isLoading, data } = useQuery({
     queryKey: ["user-profile"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/api/user/profile");
+      const res = await axiosInstance.get("/user/profile");
       return res.data;
     },
     enabled: isSignedIn,

@@ -9,7 +9,7 @@ export default function AdminProducts() {
   const { data: products, isLoading } = useQuery({
     queryKey: ["admin-products"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/api/admin/products");
+      const res = await axiosInstance.get("/admin/products");
       return res.data as Product[];
     },
   });

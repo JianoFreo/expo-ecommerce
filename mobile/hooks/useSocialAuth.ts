@@ -20,13 +20,15 @@ function useSocialAuth() {
 
         // After successful sign-in
         // Get current user profile
-        const profileRes = await axiosInstance.get("/api/user/profile");
+        console.log("🔍 Fetching profile from:", axiosInstance.defaults.baseURL + "/user/profile");
+        const profileRes = await axiosInstance.get("/user/profile");
+        console.log("✅ Profile response:", profileRes.data);
         const { user, shop } = profileRes.data;
 
         // If user chose seller role, promote to seller
         if (selectedRole === "seller" && user.role !== "seller" && user.role !== "super-admin") {
           try {
-            await axiosInstance.post("/api/user/promote-to-seller");
+            await axiosInstance.post("/user/promote-to-seller");
           } catch (err) {
             console.log("Seller promotion error (non-blocking):", err);
           }

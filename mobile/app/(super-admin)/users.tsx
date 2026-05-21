@@ -9,7 +9,7 @@ export default function AdminUsers() {
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/api/admin/users");
+      const res = await axiosInstance.get("/admin/users");
       return res.data as User[];
     },
   });
