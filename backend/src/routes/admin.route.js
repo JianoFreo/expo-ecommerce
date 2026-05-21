@@ -19,6 +19,10 @@ import {
     banUser,
     unbanUser,
     getRecentActivities,
+    getAllShopsAdmin,
+    updateShopAdmin,
+    deleteShopAdmin,
+    migrateMagtangobProductsToJiano,
 } from "../controllers/admin.controller.js";
 import { upsertHomeBanner } from "../controllers/banner.controller.js";
 
@@ -43,6 +47,10 @@ router.get("/customers", getAllCustomers);
 
 router.get("/stats", getDashboardStats);
 router.get("/activities", protectRoute, superAdminOnly, getRecentActivities);
+router.get("/shops", protectRoute, superAdminOnly, getAllShopsAdmin);
+router.patch("/shops/:id", protectRoute, superAdminOnly, updateShopAdmin);
+router.delete("/shops/:id", protectRoute, superAdminOnly, deleteShopAdmin);
+router.post("/migrations/magtangob-products", protectRoute, superAdminOnly, migrateMagtangobProductsToJiano);
 
 router.delete("/products/:id", deleteProduct);
 

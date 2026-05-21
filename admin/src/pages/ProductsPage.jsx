@@ -5,6 +5,8 @@ import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react
 import { productApi, shopApi } from "../lib/api";
 import { getStockStatusBadge } from "../lib/utils";
 
+const PRODUCT_CATEGORIES = ["Electronics", "Accessories", "Fashion", "Sports", "Books", "Home", "Beauty", "Toys"];
+
 function ProductsPage() {
   const queryClient = useQueryClient();
   const { user } = useUser();
@@ -239,12 +241,18 @@ function ProductsPage() {
 
               <label className="form-control">
                 <span className="label-text mb-1">Category</span>
-                <input
-                  className="input input-bordered"
+                <select
+                  className="select select-bordered"
                   value={sellerFormData.category}
                   onChange={(e) => setSellerFormData({ ...sellerFormData, category: e.target.value })}
-                  placeholder="Electronics"
-                />
+                >
+                  <option value="">Select category</option>
+                  {PRODUCT_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label className="form-control md:col-span-2">
@@ -434,10 +442,11 @@ function ProductsPage() {
                       required
                     >
                       <option value="">Select category</option>
-                      <option value="Electronics">Electronics</option>
-                      <option value="Accessories">Accessories</option>
-                      <option value="Fashion">Fashion</option>
-                      <option value="Sports">Sports</option>
+                      {PRODUCT_CATEGORIES.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

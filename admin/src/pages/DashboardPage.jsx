@@ -39,11 +39,13 @@ function DashboardPage() {
   const { data: myShopData, isLoading: myShopLoading } = useQuery({
     queryKey: ["myShop"],
     queryFn: shopApi.getMyShop,
+    enabled: !isSuperAdmin,
   });
 
   const { data: myShopStatsData, isLoading: myShopStatsLoading } = useQuery({
     queryKey: ["myShopStats"],
     queryFn: shopApi.getMyShopStats,
+    enabled: !isSuperAdmin,
   });
 
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -196,106 +198,114 @@ function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* SHOP CREATION/MANAGEMENT */}
-      <div className="card bg-base-100 shadow-xl">
-        <div className="card-body space-y-4">
-          <h2 className="card-title text-2xl">Your Shop</h2>
-          {myShopLoading ? (
-            <div className="flex justify-center py-8">
-              <span className="loading loading-spinner loading-lg" />
-            </div>
-          ) : myShopData?.shop ? (
-            <>
-              <div className="alert alert-info">
-                <div>
-                  <h3 className="font-bold">{myShopData.shop.name}</h3>
-                  <div className="text-sm">{myShopData.shop.description}</div>
-                  <div className="text-xs mt-1">
-                    ID: {myShopData.shop._id}
+      {!isSuperAdmin ? (
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body space-y-4">
+            <h2 className="card-title text-2xl">Your Shop</h2>
+            {myShopLoading ? (
+              <div className="flex justify-center py-8">
+                <span className="loading loading-spinner loading-lg" />
+              </div>
+            ) : myShopData?.shop ? (
+              <>
+                <div className="alert alert-info">
+                  <div>
+                    <h3 className="font-bold">{myShopData.shop.name}</h3>
+                    <div className="text-sm">{myShopData.shop.description}</div>
+                    <div className="text-xs mt-1">
+                      ID: {myShopData.shop._id}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="form-control md:col-span-2">
-                  <span className="label-text mb-1">Shop Name</span>
-                  <input
-                    className="input input-bordered"
-                    value={shopFormData.name}
-                    onChange={(e) => setShopFormData({ ...shopFormData, name: e.target.value })}
-                    placeholder="My Shop"
-                  />
-                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="form-control md:col-span-2">
+                    <span className="label-text mb-1">Shop Name</span>
+                    <input
+                      className="input input-bordered"
+                      value={shopFormData.name}
+                      onChange={(e) => setShopFormData({ ...shopFormData, name: e.target.value })}
+                      placeholder="My Shop"
+                    />
+                  </label>
 
-                <label className="form-control md:col-span-2">
-                  <span className="label-text mb-1">Shop Description</span>
-                  <textarea
-                    className="textarea textarea-bordered"
-                    value={shopFormData.description}
-                    onChange={(e) => setShopFormData({ ...shopFormData, description: e.target.value })}
-                    placeholder="Describe your shop..."
-                    rows="3"
-                  ></textarea>
-                </label>
-              </div>
+                  <label className="form-control md:col-span-2">
+                    <span className="label-text mb-1">Shop Description</span>
+                    <textarea
+                      className="textarea textarea-bordered"
+                      value={shopFormData.description}
+                      onChange={(e) => setShopFormData({ ...shopFormData, description: e.target.value })}
+                      placeholder="Describe your shop..."
+                      rows="3"
+                    ></textarea>
+                  </label>
+                </div>
 
-              <div className="flex justify-end gap-2">
-                <button
-                  className="btn btn-primary"
-                  onClick={() => updateShopMutation.mutate({ id: myShopData.shop._id, payload: shopFormData })}
-                  disabled={updateShopMutation.isPending}
-                  type="button"
-                >
-                  {updateShopMutation.isPending ? (
-                    <span className="loading loading-spinner loading-sm" />
-                  ) : (
-                    "Update Shop"
-                  )}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-base-content/70">Create your shop to start selling products.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="form-control md:col-span-2">
-                  <span className="label-text mb-1">Shop Name</span>
-                  <input
-                    className="input input-bordered"
-                    value={shopFormData.name}
-                    onChange={(e) => setShopFormData({ ...shopFormData, name: e.target.value })}
-                    placeholder="My Shop"
-                  />
-                </label>
+                <div className="flex justify-end gap-2">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => updateShopMutation.mutate({ id: myShopData.shop._id, payload: shopFormData })}
+                    disabled={updateShopMutation.isPending}
+                    type="button"
+                  >
+                    {updateShopMutation.isPending ? (
+                      <span className="loading loading-spinner loading-sm" />
+                    ) : (
+                      "Update Shop"
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-base-content/70">Create your shop to start selling products.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="form-control md:col-span-2">
+                    <span className="label-text mb-1">Shop Name</span>
+                    <input
+                      className="input input-bordered"
+                      value={shopFormData.name}
+                      onChange={(e) => setShopFormData({ ...shopFormData, name: e.target.value })}
+                      placeholder="My Shop"
+                    />
+                  </label>
 
-                <label className="form-control md:col-span-2">
-                  <span className="label-text mb-1">Shop Description</span>
-                  <textarea
-                    className="textarea textarea-bordered"
-                    value={shopFormData.description}
-                    onChange={(e) => setShopFormData({ ...shopFormData, description: e.target.value })}
-                    placeholder="Describe your shop..."
-                    rows="3"
-                  ></textarea>
-                </label>
-              </div>
+                  <label className="form-control md:col-span-2">
+                    <span className="label-text mb-1">Shop Description</span>
+                    <textarea
+                      className="textarea textarea-bordered"
+                      value={shopFormData.description}
+                      onChange={(e) => setShopFormData({ ...shopFormData, description: e.target.value })}
+                      placeholder="Describe your shop..."
+                      rows="3"
+                    ></textarea>
+                  </label>
+                </div>
 
-              <div className="flex justify-end">
-                <button
-                  className="btn btn-primary"
-                  onClick={() => createShopMutation.mutate(shopFormData)}
-                  disabled={createShopMutation.isPending || !shopFormData.name.trim()}
-                  type="button"
-                >
-                  {createShopMutation.isPending ? (
-                    <span className="loading loading-spinner loading-sm" />
-                  ) : (
-                    "Create Shop"
-                  )}
-                </button>
-              </div>
-            </>
-          )}
+                <div className="flex justify-end">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => createShopMutation.mutate(shopFormData)}
+                    disabled={createShopMutation.isPending || !shopFormData.name.trim()}
+                    type="button"
+                  >
+                    {createShopMutation.isPending ? (
+                      <span className="loading loading-spinner loading-sm" />
+                    ) : (
+                      "Create Shop"
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="alert alert-info">
+          <span>
+            You are signed in as super-admin. Use the Products and Shops pages to manage the marketplace instead of a personal seller shop.
+          </span>
+        </div>
+      )}
 
       {!isSuperAdmin && (
         <div className="alert alert-info">

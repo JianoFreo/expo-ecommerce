@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const activitySchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['order_created', 'payment_received', 'user_registered', 'user_unbanned', 'user_banned', 'shop_created', 'product_added', 'product_sold'],
+    enum: ['order_created', 'payment_received', 'user_registered', 'user_unbanned', 'user_banned', 'shop_created', 'product_added', 'product_sold', 'products_migrated'],
     required: true,
   },
   user: {

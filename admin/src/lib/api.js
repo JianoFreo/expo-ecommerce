@@ -108,6 +108,28 @@ export const shopApi = {
     },
 };
 
+export const adminShopApi = {
+    getAll: async () => {
+        const { data } = await axiosInstance.get("/admin/shops");
+        return data;
+    },
+
+    update: async ({ id, payload }) => {
+        const { data } = await axiosInstance.patch(`/admin/shops/${id}`, payload);
+        return data;
+    },
+
+    delete: async (id) => {
+        const { data } = await axiosInstance.delete(`/admin/shops/${id}`);
+        return data;
+    },
+
+    migrateMagtangobProducts: async () => {
+        const { data } = await axiosInstance.post("/admin/migrations/magtangob-products");
+        return data;
+    },
+};
+
 export const userManagementApi = {
     getAllUsers: async () => {
         const { data } = await axiosInstance.get("/admin/users");

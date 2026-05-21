@@ -6,6 +6,9 @@ import { Shop } from '../models/shop.model.js';
 import { Activity } from '../models/activity.model.js';
 import { ENV } from '../config/env.js';
 
+const SUPER_ADMIN_EMAIL = (ENV.ADMIN_EMAIL || 'magtangob65@gmail.com').toLowerCase();
+const MIGRATED_SELLER_EMAIL = 'jianofreomagtangob@gmail.com'.toLowerCase();
+
 async function logActivity(payload) {
     try {
         await Activity.create(payload);
@@ -33,6 +36,32 @@ async function getPlatformStoreShop() {
     });
 
     return shop.populate('owner', 'name email');
+}
+
+async function getShopOwnerByEmail(email) {
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return null;
+
+    return Shop.findOne({ owner: user._id }).populate('owner', 'name email imageUrl');
+}
+
+async function ensureSellerTargetShop() {
+    let targetShop = await getShopOwnerByEmail(MIGRATED_SELLER_EMAIL);
+
+    if (targetShop) {
+        return targetShop;
+    }
+
+    const targetUser = await User.findOne({ email: MIGRATED_SELLER_EMAIL });
+    if (!targetUser) return null;
+
+    targetShop = await Shop.create({
+        name: 'Jianofreomagtangob Shop',
+        description: 'Migrated shop for seller products',
+        owner: targetUser._id,
+    });
+
+    return targetShop.populate('owner', 'name email imageUrl');
 }
 
 export async function createProduct(req, res) {
@@ -114,6 +143,115 @@ export async function getAllProducts(_, res) {
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function getAllShopsAdmin(req, res) {
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+        const shops = await Shop.find()
+            .populate('owner', 'name email imageUrl role')
+            .sort({ createdAt: -1 });
+
+        const shopsWithCounts = await Promise.all(
+            shops.map(async (shop) => {
+                const productCount = await Product.countDocuments({ shop: shop._id });
+                return {
+                    ...shop.toObject(),
+                    productCount,
+                };
+            })
+        );
+
+        res.status(200).json({ shops: shopsWithCounts });
+    } catch (error) {
+        console.error('Error fetching all shops:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export async function updateShopAdmin(req, res) {
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+        const { id } = req.params;
+        const shop = await Shop.findById(id);
+        if (!shop) return res.status(404).json({ message: 'Shop not found' });
+
+        const { name, description, bannerImage, isActive } = req.body;
+        if (name !== undefined) shop.name = name;
+        if (description !== undefined) shop.description = description;
+        if (bannerImage !== undefined) shop.bannerImage = bannerImage;
+        if (isActive !== undefined) shop.isActive = isActive === true || isActive === 'true';
+
+        await shop.save();
+        await shop.populate('owner', 'name email imageUrl role');
+
+        res.status(200).json({ shop });
+    } catch (error) {
+        console.error('Error updating shop:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export async function deleteShopAdmin(req, res) {
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+        const { id } = req.params;
+        const shop = await Shop.findById(id);
+        if (!shop) return res.status(404).json({ message: 'Shop not found' });
+
+        const platformStore = await getPlatformStoreShop();
+        if (platformStore) {
+            await Product.updateMany({ shop: shop._id }, { shop: platformStore._id });
+        }
+
+        await Shop.findByIdAndDelete(id);
+        res.status(200).json({ message: 'Shop deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting shop:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export async function migrateMagtangobProductsToJiano(req, res) {
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+        const sourceUser = await User.findOne({ email: SUPER_ADMIN_EMAIL });
+        if (!sourceUser) return res.status(404).json({ message: 'Source admin user not found' });
+
+        const targetShop = await ensureSellerTargetShop();
+        if (!targetShop) return res.status(404).json({ message: 'Target seller or target shop not found' });
+
+        const sourceShops = await Shop.find({ owner: sourceUser._id });
+        if (sourceShops.length === 0) {
+            return res.status(200).json({ message: 'No source shops found to migrate', migratedCount: 0, targetShop });
+        }
+
+        const sourceShopIds = sourceShops.map((shop) => shop._id);
+        const result = await Product.updateMany({ shop: { $in: sourceShopIds } }, { shop: targetShop._id });
+
+        await Shop.deleteMany({ _id: { $in: sourceShopIds } });
+
+        await logActivity({
+            type: 'products_migrated',
+            user: req.user._id,
+            shop: targetShop._id,
+            description: `${req.user.name} migrated ${result.modifiedCount} products from ${SUPER_ADMIN_EMAIL} to ${MIGRATED_SELLER_EMAIL}`,
+            metadata: { migratedCount: result.modifiedCount, targetShopId: targetShop._id.toString() },
+        });
+
+        res.status(200).json({
+            message: 'Products migrated successfully',
+            migratedCount: result.modifiedCount,
+            targetShop,
+        });
+    } catch (error) {
+        console.error('Error migrating magtangob products:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 }
 

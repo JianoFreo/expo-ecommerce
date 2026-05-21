@@ -12,6 +12,9 @@ function Sidebar() {
     if (item.path === "/customers") {
       return isSuperAdmin;
     }
+    if (item.path === "/shops") {
+      return isSuperAdmin;
+    }
     return true;
   });
 
