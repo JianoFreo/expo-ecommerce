@@ -29,11 +29,32 @@ export const protectRoute = [ ///============================important : is is t
             // webhook (or other user-sync) isn't running. This lets sellers create
             // a shop immediately after signing in from the frontend.
             if (!user) {
+                // Attempt to fetch fuller profile from Clerk if we have a secret key.
+                let email = "";
+                let name = "User";
+                let imageUrl = "";
+
+                try {
+                    if (ENV.CLERK_SECRET_KEY) {
+                        const resp = await fetch(`https://api.clerk.dev/v1/users/${clerkId}`, {
+                            headers: { Authorization: `Bearer ${ENV.CLERK_SECRET_KEY}` },
+                        });
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            email = data.email_addresses?.[0]?.email_address || "";
+                            name = (data.first_name || "") + (data.last_name ? ` ${data.last_name}` : "") || data.full_name || name;
+                            imageUrl = data.image_url || "";
+                        }
+                    }
+                } catch (err) {
+                    console.warn("Clerk lookup failed, continuing with minimal user:", err?.message || err);
+                }
+
                 user = await User.create({
                     clerkId,
-                    email: "",
-                    name: "User",
-                    imageUrl: "",
+                    email,
+                    name,
+                    imageUrl,
                     addresses: [],
                     wishlist: [],
                 });
