@@ -68,12 +68,12 @@ const AuthScreen = () => {
             <ActivityIndicator size={"small"} color={"#4285f4"} />
           ) : (
             <View className="flex-row items-center justify-center">
-              <Imageas {mode === "seller" ? "Seller" : "User"} 
+              <Image
                 source={require("../../assets/images/google.png")}
                 className="size-10 mr-3"
                 resizeMode="contain"
               />
-              <Text className="text-black font-medium text-base">Continue with Google</Text>
+              <Text className="text-black font-medium text-base">Continue as {mode === "seller" ? "Seller" : "User"} with Google</Text>
             </View>
           )}
         </TouchableOpacity>
