@@ -13,7 +13,7 @@ const TabsLayout = () => {
 
   if (!isLoaded || (isSignedIn && isLoading)) return null; // for a better ux
   if (!isSignedIn) return <Redirect href={"/(auth)"} />;
-  if (data?.user?.role === "admin") return <Redirect href={"/(admin)"} />;
+  if (data?.user?.role === "admin" || data?.user?.role === "seller") return <Redirect href={"/(admin)"} />;
 
   return (
     <Tabs
