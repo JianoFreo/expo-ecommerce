@@ -25,6 +25,13 @@ const AuthScreen = () => {
         resizeMode="contain"
       />
 
+      <View className="items-center mb-2">
+        <Text className="text-2xl font-bold text-black text-center">Choose how you want to sign in</Text>
+        <Text className="text-sm text-gray-500 text-center mt-2 px-4">
+          User goes to the shop. Seller unlocks the same admin tools you already have on web.
+        </Text>
+      </View>
+
       <View className="gap-2 mt-3">
         <View className="flex-row gap-2 mb-4 justify-center">
           <TouchableOpacity
@@ -41,6 +48,11 @@ const AuthScreen = () => {
           </TouchableOpacity>
         </View>
 
+        <Text className="text-center text-sm text-gray-600 mb-2">
+          Signing in as <Text className="font-semibold text-black">{mode === "seller" ? "Seller" : "User"}</Text>
+          {mode === "seller" ? " will create seller access if you don't already have it." : " will keep you in the customer app."}
+        </Text>
+
         {/* GOOGLE SIGN IN BTN */}
         <TouchableOpacity
           className="flex-row items-center justify-center bg-white border border-gray-300 rounded-full px-6 py-2"
@@ -56,7 +68,7 @@ const AuthScreen = () => {
             <ActivityIndicator size={"small"} color={"#4285f4"} />
           ) : (
             <View className="flex-row items-center justify-center">
-              <Image
+              <Imageas {mode === "seller" ? "Seller" : "User"} 
                 source={require("../../assets/images/google.png")}
                 className="size-10 mr-3"
                 resizeMode="contain"
@@ -86,7 +98,7 @@ const AuthScreen = () => {
                 className="size-8 mr-3"
                 resizeMode="contain"
               />
-              <Text className="text-black font-medium text-base">Continue with Apple</Text>
+              <Text className="text-black font-medium text-base">Continue as {mode === "seller" ? "Seller" : "User"} with Apple</Text>
             </View>
           )}
         </TouchableOpacity>

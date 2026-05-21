@@ -32,7 +32,7 @@ function useSocialAuth() {
         await setActive({ session: createdSessionId });
         if (role === "seller") {
           await api.post("/users/become-seller");
-          router.replace("/(admin)");
+          router.replace("/dashboard");
         }
       }
     } catch (error) {

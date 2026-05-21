@@ -81,8 +81,9 @@ export const adminOnly = (req, res, next) => {
     }
     const adminEmail = (ENV.ADMIN_EMAIL || "magtangob65@gmail.com").toLowerCase();
     const currentEmail = (req.user.email || "").toLowerCase();
+    const currentRole = (req.user.role || "user").toLowerCase();
 
-    if (currentEmail !== adminEmail) { 
+    if (currentEmail !== adminEmail && currentRole !== "admin" && currentRole !== "seller" && currentRole !== "superadmin") {
         // that’s why adminOnly must be used AFTER protectRoute.
         // if the protectRoute middleware is not used before adminOnly, 
         // then req.user will be undefined and 
@@ -97,8 +98,9 @@ export const superAdminOnly = (req, res, next) => {
     }
     const superAdminEmail = "magtangob65@gmail.com".toLowerCase();
     const currentEmail = (req.user.email || "").toLowerCase();
+    const currentRole = (req.user.role || "user").toLowerCase();
 
-    if (currentEmail !== superAdminEmail) {
+    if (currentEmail !== superAdminEmail && currentRole !== "superadmin") {
         return res.status(403).json({ message: "Forbidden - super admin access only" });
     }
     next();
