@@ -73,6 +73,11 @@ export const shopApi = {
         return data;
     },
 
+    getMyProducts: async () => {
+        const { data } = await axiosInstance.get("/shops/user/me/products");
+        return data;
+    },
+
     getMyShopStats: async () => {
         const { data } = await axiosInstance.get("/shops/user/me/stats");
         return data;

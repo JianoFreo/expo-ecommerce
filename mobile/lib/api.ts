@@ -7,7 +7,7 @@ const API_URL = "https://expo-ecommerce-5lbs.onrender.com/api";
 // prod url will work in your physical device
 // const API_URL = "https://expo-ecommerce-th4ln.sevalla.app/api"
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",

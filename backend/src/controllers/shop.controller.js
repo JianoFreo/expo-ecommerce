@@ -178,6 +178,26 @@ export async function getMyShopStats(req, res) {
   }
 }
 
+export async function getMyShopProducts(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+    const shop = await Shop.findOne({ owner: req.user._id });
+    if (!shop) {
+      return res.status(404).json({ message: 'You do not have a shop yet' });
+    }
+
+    const products = await Product.find({ shop: shop._id })
+      .populate({ path: 'shop', populate: { path: 'owner', select: 'name email imageUrl' } })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ products });
+  } catch (error) {
+    console.error('Error fetching seller products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 export async function createSellerProduct(req, res) {
   try {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });

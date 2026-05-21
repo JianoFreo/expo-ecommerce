@@ -84,15 +84,6 @@ function DashboardPage() {
     reason: "",
   });
 
-  const [productFormData, setProductFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    stock: "",
-    category: "",
-    images: [],
-  });
-
 
   useEffect(() => {
     if (myShopData?.shop) {
@@ -150,39 +141,6 @@ function DashboardPage() {
       queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
     },
   });
-
-  const createProductMutation = useMutation({
-    mutationFn: () => {
-      const formData = new FormData();
-      formData.append("name", productFormData.name);
-      formData.append("description", productFormData.description);
-      formData.append("price", productFormData.price);
-      formData.append("stock", productFormData.stock);
-      formData.append("category", productFormData.category);
-      productFormData.images.forEach((image) => {
-        formData.append("images", image);
-      });
-      return shopApi.createProduct(formData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["myShopStats"] });
-      setProductFormData({
-        name: "",
-        description: "",
-        price: "",
-        stock: "",
-        category: "",
-        images: [],
-      });
-    },
-  });
-
-  const handleProductFileChange = (event) => {
-    setProductFormData((current) => ({
-      ...current,
-      images: Array.from(event.target.files || []),
-    }));
-  };
 
   const dashboardStats = isSuperAdmin ? statsData : myShopStatsData?.stats;
   const recentOrders = isSuperAdmin ? ordersData?.orders?.slice(0, 5) || [] : myShopStatsData?.recentOrders || [];
@@ -339,110 +297,11 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* SELLER PRODUCT UPLOAD */}
-      {!isSuperAdmin && myShopData?.shop && (
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body space-y-4">
-            <div>
-              <h2 className="card-title text-2xl">Add Product</h2>
-              <p className="text-base-content/70 mt-1">
-                Upload products to your shop. Every product will show your shop as the seller.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="form-control">
-                <span className="label-text mb-1">Product Name</span>
-                <input
-                  className="input input-bordered"
-                  value={productFormData.name}
-                  onChange={(e) => setProductFormData({ ...productFormData, name: e.target.value })}
-                  placeholder="Product name"
-                />
-              </label>
-
-              <label className="form-control">
-                <span className="label-text mb-1">Category</span>
-                <input
-                  className="input input-bordered"
-                  value={productFormData.category}
-                  onChange={(e) => setProductFormData({ ...productFormData, category: e.target.value })}
-                  placeholder="Electronics"
-                />
-              </label>
-
-              <label className="form-control md:col-span-2">
-                <span className="label-text mb-1">Description</span>
-                <textarea
-                  className="textarea textarea-bordered"
-                  value={productFormData.description}
-                  onChange={(e) => setProductFormData({ ...productFormData, description: e.target.value })}
-                  placeholder="Describe your product"
-                  rows="3"
-                />
-              </label>
-
-              <label className="form-control">
-                <span className="label-text mb-1">Price</span>
-                <input
-                  className="input input-bordered"
-                  type="number"
-                  step="0.01"
-                  value={productFormData.price}
-                  onChange={(e) => setProductFormData({ ...productFormData, price: e.target.value })}
-                  placeholder="99.99"
-                />
-              </label>
-
-              <label className="form-control">
-                <span className="label-text mb-1">Stock</span>
-                <input
-                  className="input input-bordered"
-                  type="number"
-                  value={productFormData.stock}
-                  onChange={(e) => setProductFormData({ ...productFormData, stock: e.target.value })}
-                  placeholder="10"
-                />
-              </label>
-
-              <label className="form-control md:col-span-2">
-                <span className="label-text mb-1">Images</span>
-                <input
-                  className="file-input file-input-bordered w-full"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleProductFileChange}
-                />
-                <span className="label-text-alt mt-2">
-                  Select up to 3 images.
-                </span>
-              </label>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                className="btn btn-primary"
-                onClick={() => createProductMutation.mutate()}
-                disabled={
-                  createProductMutation.isPending ||
-                  !productFormData.name.trim() ||
-                  !productFormData.description.trim() ||
-                  !productFormData.price.trim() ||
-                  !productFormData.stock.trim() ||
-                  !productFormData.category.trim() ||
-                  productFormData.images.length === 0
-                }
-                type="button"
-              >
-                {createProductMutation.isPending ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : (
-                  "Upload Product"
-                )}
-              </button>
-            </div>
-          </div>
+      {!isSuperAdmin && (
+        <div className="alert alert-info">
+          <span>
+            Product creation now lives on the Products page. Create your shop here, then switch to Products to upload and manage items.
+          </span>
         </div>
       )}
 

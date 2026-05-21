@@ -1,5 +1,5 @@
 import SafeScreen from "@/components/SafeScreen";
-import { api } from "@/lib/api";
+import { useApi } from "@/lib/api";
 import { Shop, Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -17,6 +17,7 @@ import ProductsGrid from "@/components/ProductsGrid";
 
 const ShopDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const api = useApi();
 
   const { data: shop, isLoading: isShopLoading, isError: isShopError } = useQuery<Shop>({
     queryKey: ["shop", id],
