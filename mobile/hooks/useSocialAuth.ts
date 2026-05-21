@@ -18,27 +18,20 @@ function useSocialAuth() {
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
 
-        // After successful sign-in
-        // Get current user profile
-        console.log("🔍 Fetching profile from:", axiosInstance.defaults.baseURL + "/user/profile");
         const profileRes = await axiosInstance.get("/user/profile");
-        console.log("✅ Profile response:", profileRes.data);
-        const { user, shop } = profileRes.data;
+        const profileUser = profileRes.data?.user;
+        const profileRole = profileUser?.role;
+        const signedInEmail = (profileUser?.email || "").toLowerCase();
+        const superAdminEmail = (process.env.EXPO_PUBLIC_ADMIN_EMAIL || "magtangob65@gmail.com").toLowerCase();
 
-        // If user chose seller role, promote to seller
-        if (selectedRole === "seller" && user.role !== "seller" && user.role !== "super-admin") {
-          try {
-            await axiosInstance.post("/user/promote-to-seller");
-          } catch (err) {
-            console.log("Seller promotion error (non-blocking):", err);
-          }
+        if (signedInEmail === superAdminEmail || profileRole === "super-admin") {
+          router.replace("/(super-admin)");
+          return;
         }
 
-        // Check user's role and route accordingly
-        const userRole = user.role;
-        if (userRole === "super-admin") {
-          router.replace("/(super-admin)");
-        } else if (userRole === "seller") {
+        if (selectedRole === "seller") {
+          // Promote first so seller endpoints allow access and return real data.
+          await axiosInstance.post("/user/promote-to-seller");
           router.replace("/(seller)");
         } else {
           router.replace("/(tabs)");

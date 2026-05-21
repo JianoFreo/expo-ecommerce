@@ -14,6 +14,12 @@ export async function getCurrentUserProfile(req, res) {
             await user.save();
         }
 
+        // Normalize legacy admin role to seller so old migrated sellers keep working.
+        if (!isSuperAdmin && user.role === 'admin') {
+            user.role = 'seller';
+            await user.save();
+        }
+
         // Get user's shop if they are a seller
         let shop = null;
         if (user.role === 'seller') {
@@ -43,6 +49,11 @@ export async function promoteToSeller(req, res) {
 
         if (user.role === 'super-admin') {
             return res.status(400).json({ error: "Super admin cannot be promoted to seller" });
+        }
+
+        if (user.role === 'admin') {
+            user.role = 'seller';
+            await user.save();
         }
 
         // Check if user already has a seller account

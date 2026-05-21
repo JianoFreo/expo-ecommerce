@@ -94,8 +94,8 @@ export const sellerOnly = (req, res, next) => {
     if (!req.user) {
         return res.status(401).json({ message: "Unauthorized - user not authenticated" });
     }
-    // Sellers and super-admins can access seller endpoints
-    if (req.user.role !== 'seller' && req.user.role !== 'super-admin') {
+    // Sellers, legacy admins, and super-admins can access seller endpoints
+    if (req.user.role !== 'seller' && req.user.role !== 'admin' && req.user.role !== 'super-admin') {
         return res.status(403).json({ message: "Forbidden - seller access required" });
     }
     next();
