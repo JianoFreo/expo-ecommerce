@@ -1,8 +1,10 @@
 import useSocialAuth from "@/hooks/useSocialAuth";
+import { useState } from "react";
 import { View, Text, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 
 const AuthScreen = () => {
   const { loadingStrategy, handleSocialAuth } = useSocialAuth();
+  const [mode, setMode] = useState<"user" | "seller">("user");
 
   return (
     <View className="px-8 flex-1 justify-center items-center bg-white">
@@ -14,10 +16,25 @@ const AuthScreen = () => {
       />
 
       <View className="gap-2 mt-3">
+        <View className="flex-row gap-2 mb-4 justify-center">
+          <TouchableOpacity
+            className={`px-4 py-2 rounded-full border ${mode === "user" ? "bg-black border-black" : "bg-white border-gray-300"}`}
+            onPress={() => setMode("user")}
+          >
+            <Text className={mode === "user" ? "text-white font-semibold" : "text-black font-semibold"}>User</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`px-4 py-2 rounded-full border ${mode === "seller" ? "bg-black border-black" : "bg-white border-gray-300"}`}
+            onPress={() => setMode("seller")}
+          >
+            <Text className={mode === "seller" ? "text-white font-semibold" : "text-black font-semibold"}>Seller</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* GOOGLE SIGN IN BTN */}
         <TouchableOpacity
           className="flex-row items-center justify-center bg-white border border-gray-300 rounded-full px-6 py-2"
-          onPress={() => handleSocialAuth("oauth_google")}
+          onPress={() => handleSocialAuth("oauth_google", mode)}
           disabled={loadingStrategy !== null}
           style={{
             shadowOffset: { width: 0, height: 1 },
@@ -42,7 +59,7 @@ const AuthScreen = () => {
         {/* APPLE SIGN IN BTN */}
         <TouchableOpacity
           className="flex-row items-center justify-center bg-white border border-gray-300 rounded-full px-6 py-3"
-          onPress={() => handleSocialAuth("oauth_apple")}
+          onPress={() => handleSocialAuth("oauth_apple", mode)}
           disabled={loadingStrategy !== null}
           style={{
             shadowOffset: { width: 0, height: 1 },

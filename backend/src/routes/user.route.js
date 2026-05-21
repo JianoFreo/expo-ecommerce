@@ -3,6 +3,8 @@ import {
   addAddress,
   addToWishlist,
   deleteAddress,
+  becomeSeller,
+  getCurrentUser,
   getAddresses,
   getWishlist,
   removeFromWishlist,
@@ -18,6 +20,8 @@ const router = Router();
 router.use(protectRoute);
 
 // address routes
+router.get("/me", getCurrentUser);
+router.post("/become-seller", becomeSeller);
 router.post("/addresses", addAddress);
 router.get("/addresses", getAddresses);
 router.put("/addresses/:addressId", updateAddress);

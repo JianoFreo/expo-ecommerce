@@ -1,4 +1,5 @@
 import { User } from "../models/user.model.js";
+import { Shop } from "../models/shop.model.js";
 
 export async function addAddress(req, res) {
     try {
@@ -195,5 +196,61 @@ export async function uploadAvatar(req, res) {
     } catch (error) {
         console.error('Error uploading avatar:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+export async function getCurrentUser(req, res) {
+    try {
+        const shop = await Shop.findOne({ owner: req.user._id });
+
+        res.status(200).json({
+            user: {
+                id: req.user._id,
+                name: req.user.name,
+                email: req.user.email,
+                imageUrl: req.user.imageUrl,
+                role: req.user.role,
+                isBanned: req.user.isBanned,
+            },
+            shop: shop || null,
+        });
+    } catch (error) {
+        console.error("Error fetching current user:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+export async function becomeSeller(req, res) {
+    try {
+        const user = req.user;
+
+        if (user.role !== "admin") {
+            user.role = "admin";
+            await user.save();
+        }
+
+        let shop = await Shop.findOne({ owner: user._id });
+        if (!shop) {
+            shop = await Shop.create({
+                name: user.name || "My Shop",
+                description: "Seller shop created from mobile",
+                owner: user._id,
+            });
+        }
+
+        res.status(200).json({
+            message: "Seller access ensured",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                imageUrl: user.imageUrl,
+                role: user.role,
+            },
+            shop,
+        });
+    } catch (error) {
+        console.error("Error promoting user to seller:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 }
