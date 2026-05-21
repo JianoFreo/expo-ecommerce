@@ -1,10 +1,20 @@
-import useSocialAuth from "@/hooks/useSocialAuth";
-import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity, ActivityIndicator } from "react-native";
+import { useAuth } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router";
+import useSocialAuth from "@/hooks/useSocialAuth";
 
 const AuthScreen = () => {
   const { loadingStrategy, handleSocialAuth } = useSocialAuth();
+  const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
   const [mode, setMode] = useState<"user" | "seller">("user");
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace("/");
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   return (
     <View className="px-8 flex-1 justify-center items-center bg-white">

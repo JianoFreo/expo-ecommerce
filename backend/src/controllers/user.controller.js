@@ -224,8 +224,8 @@ export async function becomeSeller(req, res) {
     try {
         const user = req.user;
 
-        if (user.role !== "admin") {
-            user.role = "admin";
+        if (user.role !== "admin" && user.role !== "superAdmin") {
+            user.role = "seller";
             await user.save();
         }
 

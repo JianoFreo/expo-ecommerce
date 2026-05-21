@@ -1,15 +1,38 @@
-import { Redirect } from "expo-router";
+﻿import { useEffect, useRef } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function Root() {
-  const { isSignedIn } = useAuth();
+  const router = useRouter();
+  const { isSignedIn, isLoaded } = useAuth();
+  const { data, isLoading } = useCurrentUser(isSignedIn);
+  const hasRouted = useRef(false);
 
-  // Simple gate: if not signed in, go to auth, otherwise let the Stack handle routing
-  if (!isSignedIn) {
-    return <Redirect href="/(auth)" />;
-  }
+  useEffect(() => {
+    if (!isLoaded || hasRouted.current) {
+      return;
+    }
 
-  // Signed in — the Stack will show one of (tabs), (admin), or (auth) based on each layout's checks
-  // Default to (tabs) and let (admin) layout redirect if user is admin/seller
-  return <Redirect href="/(tabs)" />;
+    if (!isSignedIn) {
+      hasRouted.current = true;
+      router.replace("/(auth)");
+      return;
+    }
+
+    if (isLoading) {
+      return;
+    }
+
+    const role = data?.user?.role;
+    hasRouted.current = true;
+    router.replace(role === "admin" || role === "seller" || role === "superAdmin" ? "/(admin)" : "/(tabs)");
+  }, [data?.user?.role, isLoaded, isLoading, isSignedIn, router]);
+
+  return (
+    <View className="flex-1 items-center justify-center bg-background">
+      <ActivityIndicator size="large" color="#1DB954" />
+    </View>
+  );
 }

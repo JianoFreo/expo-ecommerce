@@ -3,7 +3,7 @@ import { useApi } from "@/lib/api";
 import { Shop, User } from "@/types";
 
 export interface CurrentUserResponse {
-  user: User & { role?: "admin" | "user"; isBanned?: boolean };
+  user: User & { role?: "admin" | "seller" | "superAdmin" | "user"; isBanned?: boolean };
   shop: Shop | null;
 }
 

@@ -82,7 +82,7 @@ const userSchema = new mongoose.Schema({
     }],
     role: {
         type: String,
-        enum: ['admin', 'user'],
+        enum: ['admin', 'seller', 'superAdmin', 'user'],
         default: 'user',
     },
     isBanned: {

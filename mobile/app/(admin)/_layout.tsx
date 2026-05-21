@@ -18,12 +18,12 @@ export default function AdminLayout() {
   }
 
   if (!isSignedIn) return <Redirect href="/(auth)" />;
-  if (data?.user?.role !== "admin" && data?.user?.role !== "seller") return <Redirect href="/(tabs)" />;
+  if (data?.user?.role !== "admin" && data?.user?.role !== "seller" && data?.user?.role !== "superAdmin") return <Redirect href="/(tabs)" />;
 
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
         tabBarActiveTintColor: "#1DB954",
         tabBarInactiveTintColor: "#8B8B8B",
       }}
