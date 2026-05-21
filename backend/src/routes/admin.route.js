@@ -28,7 +28,7 @@ const router = Router();
 
 router.use(protectRoute, adminOnly); // Apply both middlewares to all routes in this router
 
-router.post("/products", upload.array("images", 3), createProduct); // each product should have a maximum of 3 images
+router.post("/products", protectRoute, superAdminOnly, upload.array("images", 3), createProduct); // only super-admin can create via admin endpoint
 // the "images" is what we gonna use if we get into the frontend 
 router.get("/products", getAllProducts);
 router.put("/products/:id", upload.array("images", 3), updateProduct);

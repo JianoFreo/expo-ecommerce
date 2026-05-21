@@ -78,6 +78,15 @@ export const shopApi = {
         return data;
     },
 
+    createProduct: async (formData) => {
+        const { data } = await axiosInstance.post("/shops/user/me/products", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        return data;
+    },
+
     create: async (payload) => {
         const { data } = await axiosInstance.post("/shops", payload);
         return data;

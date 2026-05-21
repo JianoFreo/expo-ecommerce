@@ -177,3 +177,62 @@ export async function getMyShopStats(req, res) {
     res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+export async function createSellerProduct(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+    const { name, description, price, stock, category } = req.body;
+
+    if (!name || !description || !price || !stock || !category) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'At least one image is required' });
+    }
+    if (req.files.length > 3) {
+      return res.status(400).json({ message: 'Maximum 3 images allowed' });
+    }
+
+    // Find or create seller's shop
+    let shop = await Shop.findOne({ owner: req.user._id });
+    if (!shop) {
+      return res.status(400).json({ message: 'You must create a shop first before adding products' });
+    }
+
+    // Upload images to cloudinary
+    const cloudinary = (await import('../config/cloudinary.js')).default;
+    const uploadPromises = req.files.map((file) =>
+      cloudinary.uploader.upload(file.path, { folder: 'products' })
+    );
+    const uploadResults = await Promise.all(uploadPromises);
+    const imageUrls = uploadResults.map((result) => result.secure_url);
+
+    // Create product linked to seller's shop
+    const product = await Product.create({
+      name,
+      description,
+      price: parseFloat(price),
+      stock: parseInt(stock),
+      category,
+      images: imageUrls,
+      shop: shop._id,
+    });
+
+    // Log activity
+    const Activity = (await import('../models/activity.model.js')).Activity;
+    await Activity.create({
+      type: 'product_added',
+      user: req.user._id,
+      shop: shop._id,
+      product: product._id,
+      description: `${req.user.name} added product ${product.name} to their shop`,
+      metadata: { productName: product.name, category: product.category },
+    });
+
+    res.status(201).json({ message: 'Product created successfully', product });
+  } catch (error) {
+    console.error('Error creating seller product:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
