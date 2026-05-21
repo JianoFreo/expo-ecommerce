@@ -1,14 +1,13 @@
-import { Redirect, Tabs } from "expo-router";
+﻿import { Redirect, Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { View, ActivityIndicator } from "react-native";
-import { TouchableOpacity, Text } from "react-native";
-import { useRouter } from "expo-router";
+import { View, ActivityIndicator, TouchableOpacity, Text } from "react-native";
 
 export default function AdminLayout() {
   const { isSignedIn, isLoaded } = useAuth();
   const { data, isLoading } = useCurrentUser(isSignedIn);
+  const router = useRouter();
 
   if (!isLoaded || (isSignedIn && isLoading)) {
     return (
@@ -34,18 +33,13 @@ export default function AdminLayout() {
         options={{
           title: "Dashboard",
           tabBarIcon: ({ color, size }) => <Ionicons name="grid" size={size} color={color} />,
-          headerRight: () => {
-            const router = useRouter();
-
-            return (
-              <TouchableOpacity onPress={() => router.push('/(tabs)')} className="mr-3">
-                <Text className="text-primary">Switch to User</Text>
-              </TouchableOpacity>
-            );
-          },
+          headerRight: () => (
+            <TouchableOpacity onPress={() => router.push("/(tabs)")} className="mr-3">
+              <Text className="text-primary">Switch to User</Text>
+            </TouchableOpacity>
+          ),
         }}
       />
-      <Tabs.Screen name="dashboard" options={{ title: "Dashboard", tabBarIcon: ({ color, size }) => <Ionicons name="grid" size={size} color={color} /> }} />
       <Tabs.Screen name="products" options={{ title: "Products", tabBarIcon: ({ color, size }) => <Ionicons name="cube" size={size} color={color} /> }} />
       <Tabs.Screen name="shops" options={{ title: "Shops", tabBarIcon: ({ color, size }) => <Ionicons name="storefront" size={size} color={color} /> }} />
       <Tabs.Screen name="orders" options={{ title: "Orders", tabBarIcon: ({ color, size }) => <Ionicons name="receipt" size={size} color={color} /> }} />

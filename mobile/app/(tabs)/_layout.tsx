@@ -1,19 +1,16 @@
-import { Redirect, Tabs } from "expo-router";
+﻿import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { StyleSheet } from "react-native";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const TabsLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
-  const { data, isLoading } = useCurrentUser(isSignedIn);
   const insets = useSafeAreaInsets();
 
-  if (!isLoaded || (isSignedIn && isLoading)) return null; // for a better ux
+  if (!isLoaded) return null; // for a better ux
   if (!isSignedIn) return <Redirect href={"/(auth)"} />;
-  if (data?.user?.role === "admin" || data?.user?.role === "seller") return <Redirect href={"/(admin)"} />;
 
   return (
     <Tabs
