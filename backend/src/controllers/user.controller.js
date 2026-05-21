@@ -179,3 +179,21 @@ export async function updateProfile(req, res) {
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
+export async function uploadAvatar(req, res) {
+    try {
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+        const cloudinary = (await import('../config/cloudinary.js')).default;
+        const uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: 'avatars' });
+
+        const user = req.user;
+        user.imageUrl = uploadResult.secure_url;
+        await user.save();
+
+        res.status(200).json({ message: 'Avatar uploaded', imageUrl: uploadResult.secure_url });
+    } catch (error) {
+        console.error('Error uploading avatar:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}

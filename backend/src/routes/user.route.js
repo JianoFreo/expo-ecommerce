@@ -8,8 +8,10 @@ import {
   removeFromWishlist,
   updateAddress,
   updateProfile,
+  uploadAvatar,
 } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const router = Router();
 
@@ -28,5 +30,8 @@ router.get("/wishlist", getWishlist);
 
 // profile update
 router.patch("/profile", updateProfile);
+
+// upload avatar (multipart/form-data) - field name: avatar
+router.post('/profile/avatar', upload.single('avatar'), protectRoute, uploadAvatar);
 
 export default router;
