@@ -22,7 +22,7 @@ const ShopDetailScreen = () => {
     queryKey: ["shop", id],
     queryFn: async () => {
       const response = await api.get(`/shops/${id}`);
-      return response.data.data;
+      return response.data.shop;
     },
     enabled: !!id,
   });
@@ -31,7 +31,7 @@ const ShopDetailScreen = () => {
     queryKey: ["shop-products", id],
     queryFn: async () => {
       const response = await api.get(`/shops/${id}/products`);
-      return response.data.data;
+      return response.data.products || [];
     },
     enabled: !!id,
   });
