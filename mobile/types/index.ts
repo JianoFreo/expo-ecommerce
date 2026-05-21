@@ -34,6 +34,7 @@ export interface User {
   email: string;
   name: string;
   imageUrl: string;
+  role: 'user' | 'seller' | 'super-admin';
   addresses: Address[];
   wishlist: string[];
   createdAt: string;

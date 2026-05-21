@@ -9,6 +9,8 @@ import {
   updateAddress,
   updateProfile,
   uploadAvatar,
+  getCurrentUserProfile,
+  promoteToSeller,
 } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -16,6 +18,12 @@ import { upload } from "../middleware/multer.middleware.js";
 const router = Router();
 
 router.use(protectRoute);
+
+// current user profile
+router.get("/profile", getCurrentUserProfile);
+
+// seller promotion
+router.post("/promote-to-seller", promoteToSeller);
 
 // address routes
 router.post("/addresses", addAddress);

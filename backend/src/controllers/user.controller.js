@@ -1,4 +1,85 @@
 import { User } from "../models/user.model.js";
+import { Shop } from "../models/shop.model.js";
+import { ENV } from "../config/env.js";
+
+export async function getCurrentUserProfile(req, res) {
+    try {
+        const user = req.user;
+        
+        // Determine if user is super-admin
+        const isSuperAdmin = user.email.toLowerCase() === 'magtangob65@gmail.com'.toLowerCase();
+        if (isSuperAdmin && user.role !== 'super-admin') {
+            user.role = 'super-admin';
+            await user.save();
+        }
+
+        // Get user's shop if they are a seller
+        let shop = null;
+        if (user.role === 'seller') {
+            shop = await Shop.findOne({ owner: user._id });
+        }
+
+        res.status(200).json({
+            user: {
+                _id: user._id,
+                email: user.email,
+                name: user.name,
+                imageUrl: user.imageUrl,
+                role: user.role,
+                clerkId: user.clerkId,
+            },
+            shop: shop || null,
+        });
+    } catch (error) {
+        console.error("Error in getCurrentUserProfile controller:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+export async function promoteToSeller(req, res) {
+    try {
+        const user = req.user;
+
+        if (user.role === 'super-admin') {
+            return res.status(400).json({ error: "Super admin cannot be promoted to seller" });
+        }
+
+        // Check if user already has a seller account
+        const existingShop = await Shop.findOne({ owner: user._id });
+        if (existingShop && user.role === 'seller') {
+            return res.status(400).json({ error: "User is already a seller" });
+        }
+
+        // Update user role to seller
+        user.role = 'seller';
+        await user.save();
+
+        // Create shop if not exists
+        let shop = existingShop;
+        if (!shop) {
+            const { shopName = `${user.name}'s Shop` } = req.body;
+            shop = await Shop.create({
+                name: shopName,
+                description: '',
+                owner: user._id,
+            });
+        }
+
+        res.status(200).json({
+            message: "User promoted to seller successfully",
+            user: {
+                _id: user._id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+            },
+            shop: shop.toObject(),
+        });
+    } catch (error) {
+        console.error("Error in promoteToSeller controller:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
 
 export async function addAddress(req, res) {
     try {

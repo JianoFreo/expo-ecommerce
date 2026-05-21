@@ -1,8 +1,27 @@
 import useSocialAuth from "@/hooks/useSocialAuth";
+import { useRole } from "@/context/RoleContext";
 import { View, Text, Image, TouchableOpacity, ActivityIndicator } from "react-native";
+import { router } from "expo-router";
+import { useEffect } from "react";
 
 const AuthScreen = () => {
   const { loadingStrategy, handleSocialAuth } = useSocialAuth();
+  const { selectedRole } = useRole();
+
+  useEffect(() => {
+    // If no role selected, redirect to role selection
+    if (!selectedRole) {
+      router.replace("/role-selection");
+    }
+  }, [selectedRole]);
+
+  if (!selectedRole) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <View className="px-8 flex-1 justify-center items-center bg-white">
