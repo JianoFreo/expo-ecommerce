@@ -2,6 +2,7 @@ import { useSSO } from "@clerk/clerk-expo";
 import { useState } from "react";
 import { Alert } from "react-native";
 import { useApi } from "@/lib/api";
+import * as Linking from "expo-linking";
 
 function useSocialAuth() {
   const [loadingStrategy, setLoadingStrategy] = useState<string | null>(null);
@@ -15,7 +16,12 @@ function useSocialAuth() {
     setLoadingStrategy(strategy);
 
     try {
-      const { createdSessionId, setActive } = await startSSOFlow({ strategy });
+      // For prod (standalone): use EXPO_PUBLIC_CLERK_REDIRECT_URL env var (e.g., "mobile://--/sso-callback")
+      // For dev (Expo Go): use Linking.createURL() which builds exp://...
+      const redirectUrl = process.env.EXPO_PUBLIC_CLERK_REDIRECT_URL || Linking.createURL("--/sso-callback");
+
+      // pass explicit redirect URL so Clerk returns to the app's deep link
+      const { createdSessionId, setActive } = await startSSOFlow({ strategy, redirectUrl });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         if (role === "seller") {
