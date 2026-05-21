@@ -1,5 +1,6 @@
 import React from "react";
 import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
@@ -50,6 +51,7 @@ export default function SellerLayout() {
         options={{
           title: "Dashboard",
           tabBarLabel: "Dashboard",
+          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -57,6 +59,7 @@ export default function SellerLayout() {
         options={{
           title: "Products",
           tabBarLabel: "Products",
+          tabBarIcon: ({ color, size }) => <Ionicons name="cube-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -64,6 +67,7 @@ export default function SellerLayout() {
         options={{
           title: "Orders",
           tabBarLabel: "Orders",
+          tabBarIcon: ({ color, size }) => <Ionicons name="cart-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -71,6 +75,7 @@ export default function SellerLayout() {
         options={{
           title: "Analytics",
           tabBarLabel: "Analytics",
+          tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -78,6 +83,7 @@ export default function SellerLayout() {
         options={{
           title: "Profile",
           tabBarLabel: "Profile",
+          tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
         }}
       />
     </Tabs>

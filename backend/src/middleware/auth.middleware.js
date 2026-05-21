@@ -81,7 +81,7 @@ export const adminOnly = (req, res, next) => {
         return res.status(401).json({ message: "Unauthorized - user not authenticated" });
     }
     // adminOnly is now an alias for superAdminOnly (backwards compatibility for web admin routes)
-    const superAdminEmail = "magtangob65@gmail.com".toLowerCase();
+    const superAdminEmail = (ENV.ADMIN_EMAIL || "magtangob65@gmail.com").toLowerCase();
     const currentEmail = (req.user.email || "").toLowerCase();
 
     if (currentEmail !== superAdminEmail) {
@@ -105,7 +105,7 @@ export const superAdminOnly = (req, res, next) => {
     if (!req.user) {
         return res.status(401).json({ message: "Unauthorized - user not authenticated" });
     }
-    const superAdminEmail = "magtangob65@gmail.com".toLowerCase();
+    const superAdminEmail = (ENV.ADMIN_EMAIL || "magtangob65@gmail.com").toLowerCase();
     const currentEmail = (req.user.email || "").toLowerCase();
 
     if (currentEmail !== superAdminEmail) {
