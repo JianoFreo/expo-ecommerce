@@ -152,28 +152,33 @@ const ProductDetailScreen = () => {
           </View>
 
           {/* Seller Info */}
-          {product.shop && (
-            <TouchableOpacity
-              className="bg-surface rounded-2xl p-4 mb-6 flex-row items-center justify-between"
-              activeOpacity={0.7}
-              onPress={() => router.push(`/shop/${product.shop._id}`)}
-            >
-              <View className="flex-row items-center flex-1">
-                <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mr-3">
-                  <Text className="text-black font-bold text-lg">
-                    {product.shop.owner?.name?.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-text-primary font-semibold">
-                    {product.shop.owner?.name || product.shop.name}
-                  </Text>
-                  <Text className="text-text-secondary text-xs">{product.shop.name}</Text>
-                </View>
+          <TouchableOpacity
+            className="bg-surface rounded-2xl p-4 mb-6 flex-row items-center justify-between"
+            activeOpacity={product.shop ? 0.7 : 1}
+            onPress={() => {
+              if (product.shop) {
+                router.push(`/shop/${product.shop._id}`);
+              }
+            }}
+            disabled={!product.shop}
+          >
+            <View className="flex-row items-center flex-1">
+              <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mr-3">
+                <Text className="text-black font-bold text-lg">
+                  {(product.shop?.owner?.name || product.shop?.name || "P").charAt(0).toUpperCase()}
+                </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#00D9FF" />
-            </TouchableOpacity>
-          )}
+              <View className="flex-1">
+                <Text className="text-text-primary font-semibold">
+                  {product.shop?.owner?.name || product.shop?.name || "Platform Store"}
+                </Text>
+                <Text className="text-text-secondary text-xs">
+                  {product.shop?.name || "Official store"}
+                </Text>
+              </View>
+            </View>
+            {product.shop && <Ionicons name="chevron-forward" size={20} color="#00D9FF" />}
+          </TouchableOpacity>
 
           {/* Price */}
           <View className="flex-row items-center mb-6">

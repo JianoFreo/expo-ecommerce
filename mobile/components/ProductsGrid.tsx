@@ -77,15 +77,17 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
           {product.name}
         </Text>
 
-        {product.shop && (
+        {product.shop ? (
           <TouchableOpacity
-            onPress={() => router.push(`/shop/${product.shop._id}`)}
+            onPress={() => router.push(`/shop/${product.shop!._id}`)}
             activeOpacity={0.7}
           >
             <Text className="text-primary text-xs font-semibold mb-2">
-              By {product.shop.owner?.name || product.shop.name}
+              By {product.shop.owner?.name || product.shop.name || "Platform Store"}
             </Text>
           </TouchableOpacity>
+        ) : (
+          <Text className="text-primary text-xs font-semibold mb-2">By Platform Store</Text>
         )}
 
         <View className="flex-row items-center mb-2">

@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import { Product } from "../models/product.model.js";
+import { Shop } from "../models/shop.model.js";
+import { User } from "../models/user.model.js";
 import { ENV } from "../config/env.js";
 
 const products = [
@@ -145,18 +147,40 @@ const products = [
   },
 ];
 
+const targetSellerEmail = "jianofreomagtangob@gmail.com";
+
 const seedDatabase = async () => {
   try {
     // Connect to MongoDB
     await mongoose.connect(ENV.DB_URL);
     console.log("✅ Connected to MongoDB");
 
+    const targetUser = await User.findOne({ email: targetSellerEmail });
+    if (!targetUser) {
+      throw new Error(`Target seller user not found: ${targetSellerEmail}`);
+    }
+
+    let targetShop = await Shop.findOne({ owner: targetUser._id });
+    if (!targetShop) {
+      targetShop = await Shop.create({
+        name: "Jianofreomagtangob Shop",
+        description: "Seeded shop for jianofreomagtangob",
+        owner: targetUser._id,
+      });
+      console.log(`✅ Created shop: ${targetShop.name}`);
+    }
+
     // Clear existing products
     await Product.deleteMany({});
     console.log("🗑️  Cleared existing products");
 
     // Insert seed products
-    await Product.insertMany(products);
+    await Product.insertMany(
+      products.map((product) => ({
+        ...product,
+        shop: targetShop._id,
+      }))
+    );
     console.log(`✅ Successfully seeded ${products.length} products`);
 
     // Display summary

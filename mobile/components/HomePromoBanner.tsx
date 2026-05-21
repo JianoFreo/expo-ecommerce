@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import type { HomeBanner } from "@/hooks/useHomeBanner";
 
@@ -16,9 +16,8 @@ const HomePromoBanner = ({ banner }: Props) => {
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       className="mx-6 mb-6 rounded-[28px] overflow-hidden"
-      activeOpacity={0.9}
       onPress={() => router.push(`/product/${product._id}`)}
     >
       <View className="flex-row items-center p-5 gap-4">
@@ -36,11 +35,9 @@ const HomePromoBanner = ({ banner }: Props) => {
             {product.description}
           </Text>
 
-          <TouchableOpacity
-            activeOpacity={0.85}
+          <View
             className="self-start mt-4 rounded-full px-4 py-2"
             style={{ backgroundColor: "#FFFFFF" }}
-            onPress={() => router.push(`/product/${product._id}`)}
           >
             <View className="flex-row items-center gap-2">
               <Text className="font-bold text-[#121212]">
@@ -48,7 +45,7 @@ const HomePromoBanner = ({ banner }: Props) => {
               </Text>
               <Ionicons name="arrow-forward" size={16} color="#121212" />
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {product.images?.[0] ? (
@@ -65,7 +62,7 @@ const HomePromoBanner = ({ banner }: Props) => {
           </View>
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

@@ -1,15 +1,9 @@
 import { useAuth } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useEffect } from "react";
-import { Platform } from "react-native";
 
-const DEV_API_URL = Platform.select({
-  android: "http://10.0.2.2:3000/api",
-  ios: "http://localhost:3000/api",
-  default: "http://localhost:3000/api",
-});
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || DEV_API_URL || "https://expo-ecommerce-5lbs.onrender.com/api";
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL || "https://expo-ecommerce-5lbs.onrender.com/api";
 
 export const api = axios.create({
   baseURL: API_URL,
