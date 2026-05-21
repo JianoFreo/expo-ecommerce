@@ -23,11 +23,21 @@ export const protectRoute = [ ///============================important : is is t
             const clerkId = req.auth.userId; //"Is the request authenticated?"
             if (!clerkId) return res.status(401).json({ message: "Unauthorized -  invalid token" });
 
-            const user = await User.findOne({ clerkId }); //"Does this authenticated user exist in OUR database?"
-            // Find a user whose database field "clerkId"
-            // matches the variable value stored in clerkId
-            // It is calling the local variable: const clerkId = req.auth.userId;
-            if (!user) return res.status(404).json({ message: "User not found - user not found" });
+            let user = await User.findOne({ clerkId }); //"Does this authenticated user exist in OUR database?"
+            // If the user does not exist in our DB yet, create a minimal record so
+            // protected routes don't block first-time sign-ins when the Inngest
+            // webhook (or other user-sync) isn't running. This lets sellers create
+            // a shop immediately after signing in from the frontend.
+            if (!user) {
+                user = await User.create({
+                    clerkId,
+                    email: "",
+                    name: "User",
+                    imageUrl: "",
+                    addresses: [],
+                    wishlist: [],
+                });
+            }
 
             // Check if user is banned
             if (user.isBanned) {
