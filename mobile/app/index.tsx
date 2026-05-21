@@ -19,7 +19,7 @@ export default function RootRedirect() {
     return <Redirect href="/(auth)" />;
   }
 
-  if (data?.user?.role === "admin") {
+  if (data?.user?.role === "admin" || data?.user?.role === "seller") {
     return <Redirect href="/(admin)" />;
   }
 

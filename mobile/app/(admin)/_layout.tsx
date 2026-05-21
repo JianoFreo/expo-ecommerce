@@ -17,7 +17,7 @@ export default function AdminLayout() {
   }
 
   if (!isSignedIn) return <Redirect href="/(auth)" />;
-  if (data?.user?.role !== "admin") return <Redirect href="/(tabs)" />;
+  if (data?.user?.role !== "admin" && data?.user?.role !== "seller") return <Redirect href="/(tabs)" />;
 
   return (
     <Tabs
