@@ -7,6 +7,7 @@ import {
   getWishlist,
   removeFromWishlist,
   updateAddress,
+  updateProfile,
 } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -24,5 +25,8 @@ router.delete("/addresses/:addressId", deleteAddress);
 router.post("/wishlist", addToWishlist);
 router.delete("/wishlist/:productId", removeFromWishlist);
 router.get("/wishlist", getWishlist);
+
+// profile update
+router.patch("/profile", updateProfile);
 
 export default router;

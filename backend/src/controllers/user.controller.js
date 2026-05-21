@@ -157,3 +157,25 @@ export async function getWishlist(req, res) {
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
+export async function updateProfile(req, res) {
+    try {
+        const { name, imageUrl } = req.body;
+
+        const user = req.user;
+
+        if (!name && !imageUrl) {
+            return res.status(400).json({ error: "Nothing to update" });
+        }
+
+        if (name) user.name = name;
+        if (imageUrl) user.imageUrl = imageUrl;
+
+        await user.save();
+
+        res.status(200).json({ message: "Profile updated successfully", user: { id: user._id, name: user.name, imageUrl: user.imageUrl, email: user.email } });
+    } catch (error) {
+        console.error("Error in updateProfile controller:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
