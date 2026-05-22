@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import SafeScreen from "@/components/SafeScreen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "../../lib/axios";
 import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -28,7 +28,11 @@ type ProductForm = {
   price: string;
   stock: string;
   category: string;
-  images: string[];
+  images: Array<{
+    uri: string;
+    name: string;
+    type: string;
+  }>;
 };
 
 const emptyForm: ProductForm = {
@@ -70,11 +74,13 @@ export default function AdminProducts() {
       fd.append("price", form.price.trim());
       fd.append("stock", form.stock.trim());
       fd.append("category", form.category);
-      form.images.slice(0, 3).forEach((uri, index) => {
+      form.images.slice(0, 3).forEach((file, index) => {
+        const fileName = file.name || `product-${index + 1}.jpg`;
+        const mimeType = file.type || (fileName.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
         fd.append("images", {
-          uri,
-          name: `product-${index + 1}.jpg`,
-          type: "image/jpeg",
+          uri: file.uri,
+          name: fileName,
+          type: mimeType,
         } as any);
       });
 
@@ -100,7 +106,7 @@ export default function AdminProducts() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"] as any,
       allowsMultipleSelection: true,
       quality: 0.9,
       selectionLimit: 3,
@@ -109,7 +115,15 @@ export default function AdminProducts() {
     if (!result.canceled && result.assets.length > 0) {
       setForm((current) => ({
         ...current,
-        images: [...current.images, ...result.assets.map((asset) => asset.uri)].slice(0, 3),
+        images: [
+          ...current.images,
+          ...result.assets.map((asset, index) => {
+            const uri = asset.uri;
+            const name = asset.fileName || `product-${current.images.length + index + 1}.jpg`;
+            const type = asset.mimeType || (name.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
+            return { uri, name, type };
+          }),
+        ].slice(0, 3),
       }));
     }
   };
@@ -228,9 +242,9 @@ export default function AdminProducts() {
 
                 {form.images.length > 0 && (
                   <View className="flex-row flex-wrap gap-2 mb-3">
-                    {form.images.map((uri, index) => (
-                      <View key={`${uri}-${index}`} className="w-20 h-20 rounded-xl overflow-hidden bg-black/20">
-                        <RNImage source={{ uri }} style={{ width: "100%", height: "100%" }} />
+                    {form.images.map((file, index) => (
+                      <View key={`${file.uri}-${index}`} className="w-20 h-20 rounded-xl overflow-hidden bg-black/20">
+                        <RNImage source={{ uri: file.uri }} style={{ width: "100%", height: "100%" }} />
                       </View>
                     ))}
                   </View>

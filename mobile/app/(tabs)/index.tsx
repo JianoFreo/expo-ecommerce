@@ -36,7 +36,15 @@ const ShopScreen = () => {
     // filtering by searh query
     if (searchQuery.trim()) {
       filtered = filtered.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+        [
+          product.name,
+          product.description,
+          product.category,
+          product.shop?.name,
+          product.shop?.owner?.name,
+        ]
+          .filter(Boolean)
+          .some((value) => value?.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 

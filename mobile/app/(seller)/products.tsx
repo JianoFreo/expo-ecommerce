@@ -12,10 +12,11 @@ import {
 } from "react-native";
 import SafeScreen from "@/components/SafeScreen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "../../lib/axios";
 import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
+import * as ImagePicker from "expo-image-picker";
 
 const CATEGORIES = ["Electronics", "Accessories", "Fashion", "Sports", "Books", "Home", "Beauty", "Toys"];
 
@@ -25,7 +26,11 @@ type ProductForm = {
   price: string;
   stock: string;
   category: string;
-  imageUrl: string;
+  images: Array<{
+    uri: string;
+    name: string;
+    type: string;
+  }>;
 };
 
 const defaultForm: ProductForm = {
@@ -34,7 +39,7 @@ const defaultForm: ProductForm = {
   price: "",
   stock: "",
   category: "Electronics",
-  imageUrl: "",
+  images: [],
 };
 
 export default function SellerProducts() {
@@ -55,23 +60,37 @@ export default function SellerProducts() {
 
   const upsertMutation = useMutation({
     mutationFn: async () => {
-      const payload = {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        price: Number(form.price),
-        stock: Number(form.stock),
-        category: form.category,
-        images: form.imageUrl.trim() ? [form.imageUrl.trim()] : [],
-      };
-
-      if (!payload.name || !payload.description || Number.isNaN(payload.price) || Number.isNaN(payload.stock)) {
+      if (!form.name.trim() || !form.description.trim() || Number.isNaN(Number(form.price)) || Number.isNaN(Number(form.stock))) {
         throw new Error("Please complete all required fields with valid values.");
       }
 
-      if (editingProduct?._id) {
-        return axiosInstance.patch(`/seller/products/${editingProduct._id}`, payload);
+      if (!editingProduct && form.images.length === 0) {
+        throw new Error("Please upload at least one product image.");
       }
-      return axiosInstance.post("/seller/products", payload);
+
+      const payload = new FormData();
+      payload.append("name", form.name.trim());
+      payload.append("description", form.description.trim());
+      payload.append("price", form.price.trim());
+      payload.append("stock", form.stock.trim());
+      payload.append("category", form.category);
+
+      form.images.slice(0, 3).forEach((file, index) => {
+        payload.append("images", {
+          uri: file.uri,
+          name: file.name || `product-${index + 1}.jpg`,
+          type: file.type || "image/jpeg",
+        } as any);
+      });
+
+      if (editingProduct?._id) {
+        return axiosInstance.patch(`/seller/products/${editingProduct._id}`, payload, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+      return axiosInstance.post("/seller/products", payload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     },
     onSuccess: async () => {
       await Promise.all([
@@ -116,9 +135,42 @@ export default function SellerProducts() {
       price: String(product.price ?? ""),
       stock: String(product.stock ?? ""),
       category: product.category || "Electronics",
-      imageUrl: product.images?.[0] || "",
+      images: [],
     });
     setModalVisible(true);
+  };
+
+  const pickImages = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Allow photo library access to upload product images.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"] as any,
+      allowsMultipleSelection: true,
+      quality: 0.9,
+      selectionLimit: 3,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setForm((current) => ({
+        ...current,
+        images: [
+          ...current.images,
+          ...result.assets.map((asset, index) => {
+            const fileName = asset.fileName || `product-${current.images.length + index + 1}.jpg`;
+            const fileType = asset.mimeType || (fileName.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
+            return {
+              uri: asset.uri,
+              name: fileName,
+              type: fileType,
+            };
+          }),
+        ].slice(0, 3),
+      }));
+    }
   };
 
   const askDelete = (product: Product) => {
@@ -254,13 +306,38 @@ export default function SellerProducts() {
                   className="flex-1 bg-black/20 text-white rounded-xl px-4 py-3"
                 />
               </View>
-              <TextInput
-                value={form.imageUrl}
-                onChangeText={(v) => setForm((prev) => ({ ...prev, imageUrl: v }))}
-                placeholder="Image URL (optional)"
-                placeholderTextColor="#8a8a8a"
-                className="bg-black/20 text-white rounded-xl px-4 py-3"
-              />
+
+                <TouchableOpacity className="bg-black/20 rounded-xl p-4" onPress={pickImages}>
+                  <View className="flex-row items-center justify-center gap-2">
+                    <Ionicons name="image-outline" size={18} color="#fff" />
+                    <Text className="text-text-primary font-semibold">
+                      {editingProduct ? "Replace product images" : "Choose product images"}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {editingProduct?.images?.length ? (
+                  <View className="mt-2">
+                    <Text className="text-text-secondary text-xs mb-2">Current images</Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {editingProduct.images.slice(0, 3).map((uri) => (
+                        <View key={uri} className="w-16 h-16 rounded-xl overflow-hidden bg-black/20">
+                          <Image source={{ uri }} className="w-full h-full" />
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ) : null}
+
+                {form.images.length > 0 ? (
+                  <View className="flex-row flex-wrap gap-2">
+                    {form.images.map((file, index) => (
+                      <View key={`${file.uri}-${index}`} className="w-16 h-16 rounded-xl overflow-hidden bg-black/20">
+                        <Image source={{ uri: file.uri }} className="w-full h-full" />
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
 
               <ScrollCategory
                 value={form.category}

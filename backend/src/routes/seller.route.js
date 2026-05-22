@@ -3,6 +3,7 @@ import { protectRoute, sellerOnly } from '../middleware/auth.middleware.js';
 import {
   getSellerProducts,
   getSellerOrders,
+  getSellerOrderById,
   getSellerStats,
   getSellerAnalytics,
   updateSellerShop,
@@ -20,6 +21,7 @@ router.post('/products', createSellerProduct);
 router.patch('/products/:id', updateSellerProduct);
 router.delete('/products/:id', deleteSellerProduct);
 router.get('/orders', getSellerOrders);
+router.get('/orders/:orderId', getSellerOrderById);
 router.get('/stats', getSellerStats);
 router.get('/analytics', getSellerAnalytics);
 router.patch('/shop', updateSellerShop);

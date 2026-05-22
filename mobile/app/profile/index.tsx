@@ -24,7 +24,7 @@ export default function EditProfile() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"] as any,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.9,
@@ -49,14 +49,14 @@ export default function EditProfile() {
           type: "image/jpeg",
         } as any);
 
-        const uploadResponse = await api.post("/users/profile/avatar", formData, {
+        const uploadResponse = await api.post("/user/profile/avatar", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
         uploadedImageUrl = uploadResponse.data?.imageUrl || uploadedImageUrl;
       }
 
-      await api.patch(`/users/profile`, {
+      await api.patch(`/user/profile`, {
         name,
         imageUrl: uploadedImageUrl,
       });

@@ -56,14 +56,60 @@ export async function getSellerOrders(req, res) {
 
     const productIds = await getShopProductIdsList(shopIds);
     const orders = await Order.find({ 'orderItems.product': { $in: productIds } })
-      .populate('user', 'name email')
-      .populate('orderItems.product')
+      .populate('user', 'name email imageUrl')
+      .populate({
+        path: 'orderItems.product',
+        populate: {
+          path: 'shop',
+          populate: {
+            path: 'owner',
+            select: 'name email imageUrl',
+          },
+        },
+      })
       .sort({ createdAt: -1 });
 
     res.status(200).json(orders);
   } catch (error) {
     console.error('Error fetching seller orders:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function getSellerOrderById(req, res) {
+  try {
+    const user = req.user;
+    const { orderId } = req.params;
+
+    const shopIds = await getAccessibleShopIdsForSeller(user);
+    if (shopIds.length === 0) return res.status(404).json({ message: 'Order not found' });
+
+    const productIds = await getShopProductIdsList(shopIds);
+    const order = await Order.findById(orderId)
+      .populate('user', 'name email imageUrl clerkId')
+      .populate({
+        path: 'orderItems.product',
+        populate: {
+          path: 'shop',
+          populate: {
+            path: 'owner',
+            select: 'name email imageUrl',
+          },
+        },
+      });
+
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    const hasSellerItems = order.orderItems.some((item) =>
+      productIds.some((productId) => productId.toString() === item.product?._id?.toString())
+    );
+
+    if (!hasSellerItems) return res.status(404).json({ message: 'Order not found' });
+
+    return res.status(200).json({ order });
+  } catch (error) {
+    console.error('Error fetching seller order by id:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
 

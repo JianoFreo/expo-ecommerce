@@ -6,6 +6,7 @@ import axiosInstance from "@/lib/axios";
 import { Order } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
+import { router } from "expo-router";
 
 export default function SellerOrders() {
   const { user } = useUser();
@@ -79,6 +80,7 @@ export default function SellerOrders() {
                 <TouchableOpacity 
                   className="bg-surface mx-6 my-2 rounded-2xl p-4"
                   activeOpacity={0.7}
+                  onPress={() => router.push(`/(seller)/order/${item._id}`)}
                 >
                   <View className="flex-row justify-between items-start mb-3">
                     <View className="flex-1">
@@ -94,7 +96,7 @@ export default function SellerOrders() {
                   </View>
                   <View className="flex-row justify-between items-center pt-2 border-t border-surface/50">
                     <Text className="text-text-secondary text-sm mt-2">Total</Text>
-                    <Text className="text-green-600 font-bold text-lg mt-2">${item.totalPrice?.toLocaleString() || 0}</Text>
+                    <Text className="text-green-600 font-bold text-lg mt-2">${Number(item.totalPrice || 0).toFixed(2)}</Text>
                   </View>
                 </TouchableOpacity>
               );

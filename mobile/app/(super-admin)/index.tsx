@@ -72,7 +72,9 @@ export default function AdminDashboard() {
 
           <View className="bg-surface rounded-2xl p-5">
             <Text className="text-text-secondary text-sm font-medium">Total Revenue</Text>
-            <Text className="text-3xl font-bold text-orange-500 mt-2">${stats?.totalRevenue || 0}</Text>
+            <Text className="text-3xl font-bold text-orange-500 mt-2">
+              ${Number(stats?.totalRevenue || 0).toFixed(2)}
+            </Text>
           </View>
         </View>
       </ScrollView>
