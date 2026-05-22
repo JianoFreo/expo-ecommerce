@@ -40,7 +40,8 @@ const ProductDetailScreen = () => {
   const handleAddToCart = () => {
     if (!product) return;
     if (!isLoaded || !isSignedIn || selectedRole === 'guest') {
-      return Alert.alert('Sign in required', 'Please sign in to add items to your cart.');
+      router.push('/(auth)');
+      return;
     }
 
     addToCart(
@@ -77,7 +78,8 @@ const ProductDetailScreen = () => {
           }`}
           onPress={() => {
             if (!isLoaded || !isSignedIn || selectedRole === 'guest') {
-              return Alert.alert('Sign in required', 'Please sign in to add items to your wishlist.');
+              router.push('/(auth)');
+              return;
             }
             toggleWishlist(product._id);
           }}

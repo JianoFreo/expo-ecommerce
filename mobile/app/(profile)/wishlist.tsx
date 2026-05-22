@@ -31,7 +31,8 @@ function WishlistScreen() {
 
   const handleAddToCart = (productId: string, productName: string) => {
     if (!isLoaded || !isSignedIn || selectedRole === 'guest') {
-      return Alert.alert('Sign in required', 'Please sign in to add items to your cart.');
+      router.push('/(auth)');
+      return;
     }
 
     addToCart(

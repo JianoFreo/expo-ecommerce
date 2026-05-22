@@ -11,12 +11,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import OrderSummary from "@/components/OrderSummary";
 import AddressSelectionModal from "@/components/AddressSelectionModal";
+import { useAuth } from "@clerk/clerk-expo";
+import { useRole } from "@/context/RoleContext";
+import { router } from "expo-router";
 
 import * as Sentry from "@sentry/react-native";
 
 const CartScreen = () => {
   const api = useApi();
   const queryClient = useQueryClient();
+  const { isSignedIn } = useAuth();
+  const { selectedRole } = useRole();
   const {
     cart,
     cartItemCount,
@@ -65,6 +70,12 @@ const CartScreen = () => {
 
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
+
+    // prevent guests from checking out
+    if (!isSignedIn || selectedRole === 'guest') {
+      router.push('/(auth)');
+      return;
+    }
 
     // check if user has addresses
     if (!addresses || addresses.length === 0) {
