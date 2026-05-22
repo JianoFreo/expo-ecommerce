@@ -31,9 +31,10 @@ async function getAccessibleShopIdsForSeller(user) {
 
 function filterOrderToSellerItems(order, shopProductIds) {
   const sellerProductIdSet = new Set(shopProductIds.map((id) => id.toString()));
-  const sellerItems = order.orderItems.filter((item) =>
-    sellerProductIdSet.has(item.product?._id?.toString() || item.product?.toString())
-  );
+  const sellerItems = order.orderItems.filter((item) => {
+    const itemProductId = item.product?._id?.toString?.() || (typeof item.product === 'string' ? item.product : item.product?.toString?.());
+    return itemProductId && sellerProductIdSet.has(itemProductId);
+  });
 
   return {
     ...order.toObject(),
@@ -148,9 +149,10 @@ export async function getSellerStats(req, res) {
     const totalOrders = orders.length;
     const pendingOrders = orders.filter((o) => o.status === 'pending').length;
     const totalRevenue = orders.reduce((sum, order) => {
-      const sellerItems = order.orderItems.filter((item) =>
-        shopProductIds.some((id) => id.toString() === item.product.toString())
-      );
+      const sellerItems = order.orderItems.filter((item) => {
+        const itemProductId = item.product?._id?.toString?.() || (typeof item.product === 'string' ? item.product : item.product?.toString?.());
+        return itemProductId && shopProductIds.some((id) => id.toString() === itemProductId);
+      });
       return sum + sellerItems.reduce((inner, item) => inner + item.price * item.quantity, 0);
     }, 0);
 

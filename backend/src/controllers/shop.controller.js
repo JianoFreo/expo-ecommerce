@@ -128,7 +128,7 @@ export async function getMyShopStats(req, res) {
 
     const recentOrders = orders.slice(0, 5).map((order) => {
       const shopItems = order.orderItems.filter((item) => {
-        const productId = item.product?._id?.toString?.();
+        const productId = item.product?._id?.toString?.() || (typeof item.product === 'string' ? item.product : item.product?.toString?.());
         return productId && productIdSet.has(productId);
       });
 
@@ -146,7 +146,7 @@ export async function getMyShopStats(req, res) {
 
     const totalRevenue = orders.reduce((grandTotal, order) => {
       const shopItems = order.orderItems.filter((item) => {
-        const productId = item.product?._id?.toString?.();
+        const productId = item.product?._id?.toString?.() || (typeof item.product === 'string' ? item.product : item.product?.toString?.());
         return productId && productIdSet.has(productId);
       });
 
@@ -156,7 +156,7 @@ export async function getMyShopStats(req, res) {
 
     const totalItemsSold = orders.reduce((grandTotal, order) => {
       const shopItems = order.orderItems.filter((item) => {
-        const productId = item.product?._id?.toString?.();
+        const productId = item.product?._id?.toString?.() || (typeof item.product === 'string' ? item.product : item.product?.toString?.());
         return productId && productIdSet.has(productId);
       });
       return grandTotal + shopItems.reduce((total, item) => total + item.quantity, 0);
