@@ -57,13 +57,11 @@ const SellerAnalytics = ({ stats, recentOrders = [] }) => {
 
   const ordersData = generateOrdersData();
 
-  // Generate product categories data (mock - would come from real data)
-  const categoryData = [
-    { name: "Electronics", sales: Math.floor(Math.random() * 50) + 10 },
-    { name: "Fashion", sales: Math.floor(Math.random() * 50) + 10 },
-    { name: "Sports", sales: Math.floor(Math.random() * 50) + 10 },
-    { name: "Books", sales: Math.floor(Math.random() * 50) + 10 },
-  ];
+  // Use real category breakdown from stats when available
+  const categoryData = (stats?.categoryBreakdown || []).map((c) => ({
+    name: c.category || 'Unknown',
+    sales: c.unitsSold || 0,
+  }));
 
   return (
     <div className="space-y-6">
