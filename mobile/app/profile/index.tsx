@@ -11,6 +11,7 @@ import { router } from "expo-router";
 export default function EditProfile() {
   const { user } = useUser();
   const api = useApi();
+  const { getToken } = useAuth();
 
   const [name, setName] = useState(user?.fullName || user?.firstName || user?.username || "");
   const [imageUri, setImageUri] = useState(user?.imageUrl || "");
@@ -52,7 +53,6 @@ export default function EditProfile() {
 
         try {
           // Use fetch to upload FormData so multipart boundary is handled by RN
-          const { getToken } = useAuth();
           const token = await getToken();
           const uploadUrl = `${axiosInstance.defaults.baseURL}/user/profile/avatar`;
           const res = await fetch(uploadUrl, {

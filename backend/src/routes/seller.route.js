@@ -19,7 +19,7 @@ router.use(protectRoute, sellerOnly);
 
 router.get('/products', getSellerProducts);
 router.post('/products', upload.array('images', 3), createSellerProduct);
-router.patch('/products/:id', updateSellerProduct);
+router.patch('/products/:id', upload.array('images', 3), updateSellerProduct);
 router.delete('/products/:id', deleteSellerProduct);
 router.get('/orders', getSellerOrders);
 router.get('/orders/:orderId', getSellerOrderById);

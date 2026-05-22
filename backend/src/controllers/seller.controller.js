@@ -282,11 +282,24 @@ export async function updateSellerProduct(req, res) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const { name, description, category, images } = req.body;
+    const { name, description, category } = req.body;
     if (name !== undefined) product.name = name;
     if (description !== undefined) product.description = description;
     if (category !== undefined) product.category = category;
-    if (images !== undefined) product.images = images;
+
+    // handle images: uploaded files (req.files) or array of URLs in req.body.images
+    if (req.files && req.files.length > 0) {
+      const cloudinary = (await import('../config/cloudinary.js')).default;
+      const uploadPromises = req.files.map((file) => cloudinary.uploader.upload(file.path, { folder: 'products' }));
+      const uploadResults = await Promise.all(uploadPromises);
+      product.images = uploadResults.map((r) => r.secure_url);
+    } else if (req.body.images) {
+      try {
+        product.images = Array.isArray(req.body.images) ? req.body.images : JSON.parse(req.body.images || '[]');
+      } catch (e) {
+        // ignore parse errors and leave images unchanged
+      }
+    }
 
     if (req.body.price !== undefined) {
       const price = parseNumber(req.body.price, NaN);

@@ -15,7 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../../lib/axios";
 import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import * as ImagePicker from "expo-image-picker";
 
 const CATEGORIES = ["Electronics", "Accessories", "Fashion", "Sports", "Books", "Home", "Beauty", "Toys"];
@@ -44,6 +44,7 @@ const defaultForm: ProductForm = {
 
 export default function SellerProducts() {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const [modalVisible, setModalVisible] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
@@ -83,14 +84,30 @@ export default function SellerProducts() {
         } as any);
       });
 
+      // use fetch to POST/PATCH multipart so RN handles boundaries correctly
+      const token = await getToken();
+      const base = axiosInstance.defaults.baseURL;
       if (editingProduct?._id) {
-        return axiosInstance.patch(`/seller/products/${editingProduct._id}`, payload, {
-          headers: { "Content-Type": "multipart/form-data" },
+        const res = await fetch(`${base}/seller/products/${editingProduct._id}`, {
+          method: "PATCH",
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+          body: payload,
         });
+        if (!res.ok) throw new Error("Failed to update product");
+        return res.json();
       }
-      return axiosInstance.post("/seller/products", payload, {
-        headers: { "Content-Type": "multipart/form-data" },
+
+      const res = await fetch(`${base}/seller/products`, {
+        method: "POST",
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
+        body: payload,
       });
+      if (!res.ok) throw new Error("Failed to create product");
+      return res.json();
     },
     onSuccess: async () => {
       await Promise.all([
