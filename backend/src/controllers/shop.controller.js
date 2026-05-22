@@ -74,7 +74,7 @@ export async function updateShop(req, res) {
 export async function getShopById(req, res) {
   try {
     const { id } = req.params;
-    const shop = await Shop.findById(id).populate('owner', 'name email imageUrl');
+    const shop = await Shop.findById(id).populate('owner', 'name imageUrl');
     if (!shop) return res.status(404).json({ message: 'Shop not found' });
     res.status(200).json({ shop });
   } catch (error) {
@@ -85,7 +85,7 @@ export async function getShopById(req, res) {
 
 export async function getAllShops(_, res) {
   try {
-    const shops = await Shop.find({ isActive: true }).populate('owner', 'name email imageUrl').sort({ createdAt: -1 });
+    const shops = await Shop.find({ isActive: true }).populate('owner', 'name imageUrl').sort({ createdAt: -1 });
     res.status(200).json({ shops });
   } catch (error) {
     console.error('Error listing shops:', error);
@@ -97,7 +97,7 @@ export async function getShopProducts(req, res) {
   try {
     const { id } = req.params; // shop id
     const products = await Product.find({ shop: id })
-      .populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } })
+      .populate({ path: 'shop', populate: { path: 'owner', select: 'name' } })
       .sort({ createdAt: -1 });
     res.status(200).json({ products });
   } catch (error) {

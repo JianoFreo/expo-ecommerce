@@ -3,7 +3,7 @@ import { Shop } from "../models/shop.model.js";
 import { User } from "../models/user.model.js";
 
 async function getPlatformStoreShop() {
-    let shop = await Shop.findOne({ name: 'Platform Store' }).populate('owner', 'name email');
+    let shop = await Shop.findOne({ name: 'Platform Store' }).populate('owner', 'name');
 
     if (shop) {
         return shop;
@@ -20,13 +20,13 @@ async function getPlatformStoreShop() {
         owner: adminUser._id,
     });
 
-    return shop.populate('owner', 'name email');
+    return shop.populate('owner', 'name');
 }
 
 export async function getProductById(req, res) {
     try {
         const { id } = req.params;
-        const product = await Product.findById(id).populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } });
+        const product = await Product.findById(id).populate({ path: 'shop', populate: { path: 'owner', select: 'name' } });
         if (!product) {
             return res.status(404).json({ error: "Product not found" });
         }
