@@ -2,6 +2,167 @@
 
 A full-stack e-commerce platform built with **Expo (React Native)**, **React + Vite** (Admin), and **Node.js + Express** (Backend). Features multi-seller support, real-time order management, analytics, guest browsing, and Stripe/COD payments.
 
+<table>
+<tr>
+<td align="center">
+
+<h2><b>AUTH</b></h2>
+
+<img width="433" height="962" alt="image" src="https://github.com/user-attachments/assets/8e9ce5b7-0fd2-49fe-bacb-facf62de6285" />
+</td>
+
+<td align="center">
+
+<h2><b>CLERK</b></h2>
+
+<img width="444" height="967" alt="image" src="https://github.com/user-attachments/assets/0a5f2b82-64bc-4c8d-9dbd-08b748ca4daf" />
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td align="center">
+
+<h2><b>PRODUCTS</b></h2>
+
+<img width="444" height="970" alt="image" src="https://github.com/user-attachments/assets/12b73e4c-304b-4e6d-b3d5-03d3ea23e007" />
+</td>
+
+<td align="center">
+
+<h2><b>CART</b></h2>
+
+<img width="448" height="973" alt="image" src="https://github.com/user-attachments/assets/3398fb35-f39f-4042-a791-64fe0a43686e" />
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td align="center">
+
+<h2><b>STRIPE PAYMENT</b></h2>
+
+<img width="445" height="960" alt="image" src="https://github.com/user-attachments/assets/0c4fc79b-f41c-4459-950e-3922586b6426" />
+</td>
+
+<td align="center">
+
+<h2><b>PROFILE</b></h2>
+
+<img width="452" height="974" alt="image" src="https://github.com/user-attachments/assets/3f39a5c4-6ddf-4b16-994a-818cebb294d7" />
+
+</td>
+</tr>
+</table>
+
+# =======================SELLER===========================
+
+<table>
+<tr>
+<td align="center">
+
+<h2><b>DASHBOARD</b></h2>
+
+<img width="440" height="960" alt="image" src="https://github.com/user-attachments/assets/072b81c8-493d-40a0-910a-cad671de3a3d" />
+</td>
+
+<td align="center">
+
+<h2><b>ORDER INVOICE - SELLER'S INVOICE</b></h2>
+
+<img width="445" height="950" alt="image" src="https://github.com/user-attachments/assets/caf19f8b-d3cf-40ec-8077-13a4759e6bac" />
+
+</td>
+</tr>
+</table>
+<table>
+<tr>
+<td align="center">
+
+<h2><b>SELLERS ANALYTICS</b></h2>
+
+<img width="444" height="964" alt="image" src="https://github.com/user-attachments/assets/f7cbde71-84db-4269-abbd-e53f71ffbf75" />
+</td>
+
+<td align="center">
+
+<h2><b>ORDER INVOICE - SELLER'S PROFILE</b></h2>
+
+<img width="454" height="974" alt="image" src="https://github.com/user-attachments/assets/ec46e498-fecf-4f50-8c1c-29273651419b" />
+
+</td>
+</tr>
+</table>
+
+
+
+### =======SUPER ADMIN - MANAGES THE ENTIRE APP DETAILS AND ACTIVITY=========
+###====================ONLY ONE PERSON CAN ACCESS (ME)======================
+
+
+
+
+</table>
+<table>
+<tr>
+<td align="center">
+
+<h2><b>DASHBOARD</b></h2>
+
+<img width="440" height="954" alt="image" src="https://github.com/user-attachments/assets/0befc7a9-cf45-4290-8b21-242dd65157e8" />
+</td>
+
+<td align="center">
+
+<h2><b>USERS HANDLING</b></h2>
+
+<img width="455" height="969" alt="image" src="https://github.com/user-attachments/assets/118c3930-1f2c-4f87-a22d-240396ee4e0d" />
+
+</td>
+</tr>
+</table>
+
+</table>
+<table>
+<tr>
+<td align="center">
+
+<h2><b>SHOP HANDLING</b></h2>
+
+<img width="455" height="973" alt="image" src="https://github.com/user-attachments/assets/e2f913e3-c9e0-43fe-88ff-7244e68d7149" />
+
+</td>
+
+<td align="center">
+
+<h2><b>HOME</b></h2>
+<h2>Can change the banner for ads</h2>
+
+<img width="452" height="970" alt="image" src="https://github.com/user-attachments/assets/f76a6b82-9d95-4238-b38e-5cb1955dcad8" />
+
+</td>
+</tr>
+</table>
+
+
+#====================== WEB PAGE - SUPER ADMIN AND SELLER ONLY ========================
+
+
+#================================ SUPER ADMIN ===========================================
+<img width="1919" height="904" alt="image" src="https://github.com/user-attachments/assets/a200aaa2-adfd-42e6-83bf-86b193464743" />
+<img width="1879" height="908" alt="image" src="https://github.com/user-attachments/assets/51181474-2881-4d74-b80a-41521c113d24" />
+<img width="1904" height="905" alt="image" src="https://github.com/user-attachments/assets/2b9d54f7-f251-4b1c-9d9c-cbc91523d065" />
+
+
+#================================ SELLER ===========================================
+
+<img width="1919" height="909" alt="image" src="https://github.com/user-attachments/assets/d447bde4-d876-4b73-ae89-8e3632bfef6a" />
+
+
 ##  Project Architecture
 
 ```
