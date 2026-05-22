@@ -253,16 +253,15 @@ export async function getWishlist(req, res) {
 
 export async function updateProfile(req, res) {
     try {
-        const { name, imageUrl } = req.body;
+        const { name } = req.body;
 
         const user = req.user;
 
-        if (!name && !imageUrl) {
+        if (!name) {
             return res.status(400).json({ error: "Nothing to update" });
         }
 
         if (name) user.name = name;
-        if (imageUrl) user.imageUrl = imageUrl;
 
         await user.save();
 
