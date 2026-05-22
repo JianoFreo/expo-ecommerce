@@ -1,6 +1,7 @@
 import SafeScreen from "@/components/SafeScreen";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useApi } from "@/lib/api";
+import axiosInstance from "@/lib/axios";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import { useState } from "react";
@@ -49,11 +50,33 @@ export default function EditProfile() {
           type: "image/jpeg",
         } as any);
 
-        const uploadResponse = await api.post("/user/profile/avatar", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        try {
+          // Use fetch to upload FormData so multipart boundary is handled by RN
+          const { getToken } = useAuth();
+          const token = await getToken();
+          const uploadUrl = `${axiosInstance.defaults.baseURL}/user/profile/avatar`;
+          const res = await fetch(uploadUrl, {
+            method: "POST",
+            headers: {
+              Authorization: token ? `Bearer ${token}` : undefined,
+            },
+            body: formData,
+          });
 
-        uploadedImageUrl = uploadResponse.data?.imageUrl || uploadedImageUrl;
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            console.error("Avatar upload error:", errBody);
+            Alert.alert("Error", errBody?.error || "Failed to upload avatar");
+            return;
+          }
+
+          const data = await res.json();
+          uploadedImageUrl = data?.imageUrl || uploadedImageUrl;
+        } catch (uploadErr: any) {
+          console.error("Avatar upload error:", uploadErr);
+          Alert.alert("Error", "Failed to upload avatar");
+          return;
+        }
       }
 
       await api.patch(`/user/profile`, {
@@ -63,9 +86,9 @@ export default function EditProfile() {
 
       Alert.alert("Success", "Profile updated");
       router.back();
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Unable to update profile");
+    } catch (err: any) {
+      console.error("Profile update error:", err?.response?.data || err?.message);
+      Alert.alert("Error", err?.response?.data?.error || "Unable to update profile");
     } finally {
       setLoading(false);
     }

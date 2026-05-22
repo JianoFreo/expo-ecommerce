@@ -120,11 +120,7 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
 
         <View className="px-6 gap-4">
           <View className="bg-surface rounded-3xl p-5">
-            <View className="flex-row items-start justify-between">
-              <View>
-                <Text className="text-text-secondary text-xs uppercase tracking-widest">Order</Text>
-                <Text className="text-text-primary text-2xl font-bold mt-1">#{data._id.slice(-8).toUpperCase()}</Text>
-              </View>
+            <View className="flex-row items-start justify-end">
               <View className={`${statusStyle.bg} px-3 py-1 rounded-full`}>
                 <Text className={`${statusStyle.text} font-bold text-xs capitalize`}>{data.status}</Text>
               </View>

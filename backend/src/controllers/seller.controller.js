@@ -224,7 +224,7 @@ export async function updateSellerShop(req, res) {
 export async function createSellerProduct(req, res) {
   try {
     const user = req.user;
-    const { name, description, category, images = [] } = req.body;
+    const { name, description, category } = req.body;
     const price = parseNumber(req.body.price, NaN);
     const stock = parseNumber(req.body.stock, NaN);
 
@@ -237,13 +237,30 @@ export async function createSellerProduct(req, res) {
       shop = await Shop.create({ owner: user._id, name: `${user.name || 'Seller'}'s Shop`, description: '' });
     }
 
+    // images may come as uploaded files (req.files) or as array of URLs in req.body.images
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      // handle file uploads (multer saved files to disk)
+      const cloudinary = (await import('../config/cloudinary.js')).default;
+      const uploadPromises = req.files.map((file) => cloudinary.uploader.upload(file.path, { folder: 'products' }));
+      const uploadResults = await Promise.all(uploadPromises);
+      imageUrls = uploadResults.map((r) => r.secure_url);
+    } else if (req.body.images) {
+      // accept JSON array of image URLs
+      try {
+        imageUrls = Array.isArray(req.body.images) ? req.body.images : JSON.parse(req.body.images || '[]');
+      } catch (e) {
+        imageUrls = [];
+      }
+    }
+
     const product = await Product.create({
       name,
       description,
       category,
       price,
       stock,
-      images,
+      images: imageUrls,
       shop: shop._id,
     });
 

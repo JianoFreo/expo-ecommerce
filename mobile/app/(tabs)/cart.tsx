@@ -46,7 +46,11 @@ const CartScreen = () => {
     updateQuantity({ productId, quantity: newQuantity });
   };
 
-  const handleRemoveItem = (productId: string, productName: string) => {
+  const handleRemoveItem = (productId: string | undefined, productName: string) => {
+    if (!productId) {
+      Alert.alert("Error", "Product ID not found");
+      return;
+    }
     Alert.alert("Remove Item", `Remove ${productName} from cart?`, [
       { text: "Cancel", style: "cancel" },
       {
@@ -265,8 +269,8 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="bg-background-lighter rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleQuantityChange(item.product?._id || item._id, item.quantity, -1)}
-                      disabled={isUpdating}
+                      onPress={() => item.product && handleQuantityChange(item.product._id, item.quantity, -1)}
+                      disabled={isUpdating || !item.product}
                     >
                       {isUpdating ? (
                         <ActivityIndicator size="small" color="#FFFFFF" />
@@ -282,8 +286,8 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="bg-primary rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleQuantityChange(item.product?._id || item._id, item.quantity, 1)}
-                      disabled={isUpdating}
+                      onPress={() => item.product && handleQuantityChange(item.product._id, item.quantity, 1)}
+                      disabled={isUpdating || !item.product}
                     >
                       {isUpdating ? (
                         <ActivityIndicator size="small" color="#121212" />
@@ -295,8 +299,8 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="ml-auto bg-red-500/10 rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleRemoveItem(item.product?._id || item._id, item.product?.name || "this item")}
-                      disabled={isRemoving}
+                      onPress={() => item.product && handleRemoveItem(item.product._id, item.product?.name || "this item")}
+                      disabled={isRemoving || !item.product}
                     >
                       <Ionicons name="trash-outline" size={18} color="#EF4444" />
                     </TouchableOpacity>

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { protectRoute, sellerOnly } from '../middleware/auth.middleware.js';
+import { upload } from '../middleware/multer.middleware.js';
 import {
   getSellerProducts,
   getSellerOrders,
@@ -17,7 +18,7 @@ const router = Router();
 router.use(protectRoute, sellerOnly);
 
 router.get('/products', getSellerProducts);
-router.post('/products', createSellerProduct);
+router.post('/products', upload.array('images', 3), createSellerProduct);
 router.patch('/products/:id', updateSellerProduct);
 router.delete('/products/:id', deleteSellerProduct);
 router.get('/orders', getSellerOrders);
