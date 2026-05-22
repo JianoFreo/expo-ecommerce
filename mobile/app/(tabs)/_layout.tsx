@@ -4,13 +4,16 @@ import { useAuth } from "@clerk/clerk-expo";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { StyleSheet } from "react-native";
+import { useRole } from "@/context/RoleContext";
 
 const TabsLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
+  const { selectedRole } = useRole();
   const insets = useSafeAreaInsets();
 
   if (!isLoaded) return null; // for a better ux
-  if (!isSignedIn) return <Redirect href={"/(auth)"} />;
+  // Allow if signed in with Clerk OR browsing as guest
+  if (!isSignedIn && selectedRole !== 'guest') return <Redirect href={"/(auth)"} />;
 
   return (
     <Tabs
