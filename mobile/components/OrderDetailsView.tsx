@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Image as RNImage, Alert } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 import axiosInstance from "../lib/axios";
 import SafeScreen from "./SafeScreen";
 import { Product } from "@/types";
-
 type OrderDetails = {
     _id: string;
     user?: {
@@ -65,6 +65,9 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
     const queryClient = useQueryClient();
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const isSeller = endpoint.includes("seller");
+    const isAdmin = endpoint.includes("admin") || endpoint.includes("super-admin");
+    const { user: clerkUser } = useUser();
+    const currentUserEmail = clerkUser?.emailAddresses?.[0]?.emailAddress?.toLowerCase?.();
     const validStatuses = ["pending", "shipped", "delivered", "cancelled"];
 
     const { data, isLoading, isError } = useQuery({
@@ -247,7 +250,13 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
                             </View>
                             <View className="flex-1">
                                 <Text className="text-text-primary font-semibold">{data.user?.name || "Unknown customer"}</Text>
-                                <Text className="text-text-secondary text-sm">{data.user?.email || "No email"}</Text>
+                                {(() => {
+                                    const orderUserEmail = data.user?.email?.toLowerCase?.();
+                                    const showEmail = isSeller || isAdmin || (currentUserEmail && orderUserEmail && currentUserEmail === orderUserEmail);
+                                    return showEmail ? (
+                                        <Text className="text-text-secondary text-sm">{data.user?.email || "No email"}</Text>
+                                    ) : null;
+                                })()}
                             </View>
                         </View>
                     </View>

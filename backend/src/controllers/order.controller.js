@@ -154,7 +154,7 @@ export async function getUserOrderById(req, res) {
                     path: "shop",
                     populate: {
                         path: "owner",
-                        select: "name imageUrl",
+                        select: "name email imageUrl",
                     },
                 },
             });
