@@ -19,6 +19,7 @@ import paymentRoutes from "./routes/payment.route.js";
 import bannerRoutes from "./routes/banner.route.js";
 import shopRoutes from './routes/shop.route.js';
 import sellerRoutes from './routes/seller.route.js';
+import settingsRoutes from './routes/settings.route.js';
 
 const app = express();
 const __dirname = path.resolve();
@@ -81,6 +82,7 @@ app.use("/api/carts", cartRoutes)
 app.use("/api/banner", bannerRoutes)
 app.use("/api/shops", shopRoutes)
 app.use("/api/seller", sellerRoutes)
+app.use("/api/settings", settingsRoutes)
 //===============================================================================
 
 

@@ -106,7 +106,6 @@ const ShopDetailScreen = () => {
               </View>
               <View className="flex-1">
                 <Text className="text-text-primary font-semibold">{shop.owner.name}</Text>
-                <Text className="text-text-secondary text-xs">{shop.owner.email}</Text>
               </View>
             </View>
           )}

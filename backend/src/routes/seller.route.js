@@ -11,6 +11,7 @@ import {
   createSellerProduct,
   updateSellerProduct,
   deleteSellerProduct,
+  updateOrderStatus,
 } from '../controllers/seller.controller.js';
 
 const router = Router();
@@ -23,6 +24,7 @@ router.patch('/products/:id', upload.array('images', 3), updateSellerProduct);
 router.delete('/products/:id', deleteSellerProduct);
 router.get('/orders', getSellerOrders);
 router.get('/orders/:orderId', getSellerOrderById);
+router.patch('/orders/:orderId/status', updateOrderStatus);
 router.get('/stats', getSellerStats);
 router.get('/analytics', getSellerAnalytics);
 router.patch('/shop', updateSellerShop);

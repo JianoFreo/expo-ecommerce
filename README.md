@@ -1,105 +1,301 @@
-# expo-ecommerce Setup Guide
+# JianoFreo Marketplace - E-commerce Platform
 
-Follow the steps below to set up the complete `expo-ecommerce` project.
+A full-stack e-commerce platform built with **Expo (React Native)**, **React + Vite** (Admin), and **Node.js + Express** (Backend). Features multi-seller support, real-time order management, analytics, guest browsing, and Stripe/COD payments.
 
-## Project Structure
+##  Project Architecture
 
-Create the following directory structure:
-
-```text
+```
 expo-ecommerce/
-├── backend/          # Express + MongoDB API
-├── admin/            # React + Vite admin dashboard
-├── mobile/           # Expo mobile app
-├── instructions/     # Step-by-step setup guides
-├── README.md         # Project overview
-└── set-up.md         # Quick setup index
+├── backend/              # Node.js + Express API
+├── admin/                # React + Vite admin dashboard
+├── mobile/               # Expo (React Native) mobile app
+├── instructions/         # Setup & configuration guides
+├── README.md            # This file (project overview & features)
+└── package.json         # Root workspace config
 ```
 
-## Creating Directories
-
-From the project root, create the folders if they do not already exist:
-
-```bash
-# Windows (PowerShell)
-mkdir backend, admin, mobile, instructions
-
-# macOS/Linux
-mkdir -p backend admin mobile instructions
-```
-
-## Setup Flow
-
-1. **[Step 1: Initialize Root Project](instructions/step-1-initialize-root-project.md)** - Create the folders and initialize the root `package.json`
-2. **[Step 2: Set up Backend](instructions/step-2-setup-backend-api.md)** - Install `express`, `dotenv`, `mongoose`, `mongodb`, and `nodemon`
-3. **[Step 3: Set up Admin](instructions/step-3-setup-admin-dashboard.md)** - Initialize the admin app with Vite and React
-4. **[Step 4: Set up Mobile Application](instructions/step-4-setup-mobile-app.md)** - Initialize the Expo mobile app
-5. **[Step 5: Configure Clerk Auth](instructions/step-5-configure-clerk-auth.md)** - Add authentication keys and install Clerk packages
-6. **[Step 6: Configure Inngest](instructions/step-6-configure-inngest-webhooks.md)** - Add background-job support and signing keys
-7. **[Step 7: Configure Cloudinary](instructions/step-7-configure-cloudinary-uploads.md)** - Add media upload credentials and backend Cloudinary config
-8. **[Step 8: Configure Clerk and Webhooks](instructions/step-8-connect-clerk-and-inngest-sync.md)** - Connect the admin app to Clerk and sync users with Inngest
-9. **[Step 9: Configure Models, Routes, and Middleware](instructions/step-9-configure-models-routes-middleware.md)** - Set up Mongoose models, admin API routes, auth middleware, and multer file uploads
-
-## When to Install Dependencies
+##  Tech Stack
 
 ### Backend
-Install these inside `backend/` when you are working on the API:
+- **Runtime**: Node.js (v18+)
+- **Framework**: Express.js
+- **Database**: MongoDB + Mongoose
+- **Authentication**: Clerk
+- **File Uploads**: Cloudinary
+- **Background Jobs**: Inngest
+- **Payments**: Stripe
+- **Monitoring**: Sentry
 
-```bash
-npm install express dotenv
-npm install mongoose mongodb
-npm install cloudinary
-npm install --save-dev nodemon
+### Admin Dashboard
+- **Framework**: React 18 + Vite
+- **Styling**: Tailwind CSS + DaisyUI
+- **HTTP Client**: Axios
+- **State Management**: TanStack React Query (v5)
+- **Charts**: Recharts
+- **Authentication**: @clerk/clerk-react
+- **Icons**: Lucide React
+
+### Mobile App
+- **Framework**: Expo (React Native)
+- **Navigation**: Expo Router
+- **Styling**: NativeWind (Tailwind for React Native)
+- **HTTP Client**: Axios
+- **State Management**: TanStack React Query (v5)
+- **Authentication**: @clerk/clerk-expo
+- **Local Storage**: @react-native-async-storage/async-storage
+- **Payments**: @stripe/stripe-react-native
+- **Monitoring**: @sentry/react-native
+
+##  Key Features
+
+### For Buyers
+- **Guest Browsing**: Browse products without authentication (admin-controlled toggle)
+- **Product Discovery**: Browse products by category, search, and filters
+- **Shopping Cart**: Add/remove items, manage quantities
+- **Wishlist**: Save favorite products
+- **Checkout**: Multiple payment methods (Stripe, COD)
+- **Order Tracking**: View order status (pending → shipped → delivered)
+- **Order History**: Access past orders and details
+- **Reviews & Ratings**: Rate products and read reviews
+- **Address Management**: Save and manage shipping addresses
+- **User Profile**: Manage account and preferences
+
+### For Sellers
+- **Shop Management**: Create and manage personal shop
+- **Product Management**: 
+  - Upload products with images (Cloudinary)
+  - Bulk operations
+  - Stock management
+- **Order Management**:
+  - View orders containing their products
+  - Update order status (pending → shipped → delivered → cancelled)
+  - Track fulfillment
+- **Analytics Dashboard**:
+  - Sales by category
+  - Total revenue
+  - Units sold
+  - Order metrics
+  - Order history with filtering
+
+### For Super Admin
+- **Dashboard**: System-wide analytics and stats
+- **Order Management**: View and update all orders
+- **User Management**: Ban/unban users
+- **Shop Management**: Approve/manage seller shops
+- **Settings**: Toggle features (e.g., guest browsing)
+- **Customer Management**: View all users and activity
+- **Analytics**: System-wide insights
+
+### System Features
+- **Role-Based Access**: Buyer, Seller, Super Admin
+- **Authentication**: Clerk (social login with Google/Apple)
+- **Webhooks**: Clerk user sync with Inngest background jobs
+- **Real-Time Updates**: React Query cache invalidation on actions
+- **Error Handling**: Sentry integration for frontend/backend monitoring
+- **Stripe Payments**: Secure card payments with payment intent
+- **Cash on Delivery (COD)**: Alternative payment option
+- **Image Uploads**: Cloudinary integration for product images
+- **Responsive Design**: Mobile-first UI for all platforms
+
+##  Getting Started
+
+### Prerequisites
+- Node.js v18+
+- npm or yarn
+- MongoDB instance (local or cloud)
+- Clerk account (for authentication)
+- Cloudinary account (for image uploads)
+- Stripe account (for payments)
+- Inngest account (for background jobs)
+- Sentry project (for error tracking)
+
+### Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone <repo-url>
+   cd expo-ecommerce
+   ```
+
+2. **Install dependencies**
+   ```bash
+   # Backend
+   cd backend
+   npm install
+   
+   # Admin
+   cd ../admin
+   npm install
+   
+   # Mobile
+   cd ../mobile
+   npm install
+   ```
+
+3. **Set up environment variables**
+   - Create `.env` in each folder (backend, admin, mobile)
+   - See instruction guides for required variables
+
+4. **Start development servers**
+   ```bash
+   # Terminal 1: Backend
+   cd backend
+   npm start
+   
+   # Terminal 2: Admin Dashboard
+   cd admin
+   npm run dev
+   
+   # Terminal 3: Mobile App
+   cd mobile
+   npm start
+   ```
+
+5. **Access the applications**
+   - Backend API: http://localhost:3000
+   - Admin Dashboard: http://localhost:5173
+   - Mobile: Use Expo Go app or scan QR code from terminal
+
+##  Project Status
+
+###  Implemented
+- Multi-seller marketplace with shop management
+- Buyer browsing (authenticated and guest)
+- Guest role with limited features (no cart/wishlist/checkout)
+- Product uploads with Cloudinary integration
+- Order creation and management
+- Status tracking (pending → shipped → delivered → cancelled)
+- Seller order filtering and management
+- Admin order management and status updates
+- Seller analytics (by category, revenue, units sold)
+- Admin analytics dashboard
+- Stripe and COD payments
+- Wishlist functionality
+- Client-side role persistence
+- Guest banner on mobile
+- Multi-role routing (buyer, seller, super-admin)
+- Clerk authentication with social login
+
+###  In Progress / Planned
+- Mobile seller analytics
+- Advanced search and filters
+- Notifications system
+- Returns/refunds management
+- Product recommendations
+- Promotional codes
+
+##  Project Structure
+
+### Backend (`/backend`)
+```
+src/
+├── config/           # Database and external service configs
+├── controllers/      # Route handlers (shop, product, order, seller, etc.)
+├── middleware/       # Auth, multer file upload, error handling
+├── models/           # Mongoose schemas (Order, Product, Shop, User, etc.)
+├── routes/           # API route definitions
+├── seeds/            # Database seed scripts
+└── server.js         # Main server entry point
 ```
 
-- `express` and `dotenv` are needed for almost every backend setup.
-- `mongoose` and `mongodb` are needed when the backend connects to MongoDB.
-- `cloudinary` is needed when uploading product images from the backend.
-- `nodemon` is for development only.
-
-### Admin
-Install admin dependencies inside `admin/` when building the dashboard:
-
-```bash
-npm create vite@latest .
-npm run build
+### Admin Dashboard (`/admin`)
+```
+src/
+├── components/       # Reusable UI components (Navbar, Sidebar, etc.)
+├── layouts/          # Page layouts
+├── lib/              # API client, utilities
+├── pages/            # Page components (Dashboard, Orders, Products, etc.)
+└── App.jsx          # Main app component
 ```
 
-- Run `npm run build` before deployment so the `dist/` folder is generated.
-- Add packages such as `axios`, `react-router-dom`, `@clerk/clerk-react`, and `@tanstack/react-query` as the admin features grow.
-
-### Mobile
-Install mobile dependencies inside `mobile/` when building the Expo app:
-
-```bash
-npx create-expo-app@latest .
+### Mobile App (`/mobile`)
+```
+app/                  # Expo Router navigation structure
+├── (auth)/          # Authentication screens
+├── (tabs)/          # Buyer tabs (shop, cart, profile)
+├── (seller)/        # Seller screens
+├── (profile)/       # User profile screens
+└── product/         # Product detail screens
+components/          # Reusable React Native components
+context/             # Context providers (RoleContext, etc.)
+hooks/               # Custom React hooks
+lib/                 # API client, utilities
+types/               # TypeScript types
 ```
 
-- Add packages such as `@clerk/clerk-expo`, `axios`, `@tanstack/react-query`, and navigation libraries when the mobile features need them.
+##  Environment Variables
 
-## Quick Start
+### Backend (.env)
+```
+MONGODB_URI=
+CLERK_WEBHOOK_SECRET=
+INNGEST_SIGNING_KEY=
+INNGEST_EVENT_KEY=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+STRIPE_SECRET_KEY=
+SENTRY_AUTH_TOKEN=
+```
 
-After completing the setup steps, run each app from its folder:
+### Admin (.env)
+```
+VITE_CLERK_PUBLISHABLE_KEY=
+SENTRY_AUTH_TOKEN=
+```
 
+### Mobile (.env)
+```
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+SENTRY_AUTH_TOKEN=
+```
+
+##  Troubleshooting
+
+### Duplicate Key Error on Orders
+**Issue**: E11000 duplicate key error on `clerkId` index
+**Solution**: Run migration script to remove duplicates and recreate non-unique index
 ```bash
-# Backend
 cd backend
-npm run dev
-
-# Admin
-cd admin
-npm run dev
-
-# Mobile
-cd mobile
+node tools/dropDuplicateKeyIndex.js
+node tools/removeDuplicateOrders.js
 npm start
 ```
 
-## Notes
+### AsyncStorage Not Available
+**Issue**: "Native module is null" on Expo Go
+**Solution**: Use in-memory fallback (current implementation) or create a development build
+```bash
+cd mobile
+eas build --platform android --profile preview
+```
 
-- Keep backend-only secrets in `backend/.env`.
-- Keep React admin environment variables in `admin/.env`.
-- Keep Expo public environment variables in `mobile/.env`.
-- Keep Cloudinary credentials in `backend/.env` only.
-- If you deploy the admin app, build it first so the `dist/` folder exists.
-- Clerk provider setup belongs in the admin app, while webhook and sync logic belongs in the backend.
+### Guest Role Not Persisting
+**Issue**: Guest role resets after app restart on Expo Go
+**Solution**: This is expected with Expo Go. Create a development build for persistent storage.
+
+### Orders Not Appearing in Seller Analytics
+**Issue**: "Units Sold" shows 0 or incorrect values
+**Solution**: Ensure order aggregation is working and product IDs are correctly handled
+```bash
+cd backend
+node tools/checkSellerStats.js
+```
+
+---
+
+##  Setup Instructions
+
+For detailed setup and configuration steps, see the [instructions folder](./instructions/):
+
+1. **[01-Initialize-Project.md](./instructions/01-initialize-project.md)** - Project initialization and structure
+2. **[02-Backend-Setup.md](./instructions/02-backend-setup.md)** - Backend API configuration
+3. **[03-Admin-Dashboard-Setup.md](./instructions/03-admin-dashboard-setup.md)** - Admin frontend setup
+4. **[04-Mobile-App-Setup.md](./instructions/04-mobile-app-setup.md)** - Mobile app configuration
+5. **[05-Authentication-Setup.md](./instructions/05-authentication-setup.md)** - Clerk authentication
+6. **[06-Cloudinary-Setup.md](./instructions/06-cloudinary-setup.md)** - Image uploads
+7. **[07-Stripe-Payments.md](./instructions/07-stripe-payments.md)** - Payment processing
+8. **[08-Inngest-Webhooks.md](./instructions/08-inngest-webhooks.md)** - Background jobs
+9. **[09-Sentry-Monitoring.md](./instructions/09-sentry-monitoring.md)** - Error tracking
+10. **[10-Database-Migrations.md](./instructions/10-database-migrations.md)** - Migration scripts

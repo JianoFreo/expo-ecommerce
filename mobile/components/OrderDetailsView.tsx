@@ -1,13 +1,13 @@
-import React from "react";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Image as RNImage } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Image as RNImage, Alert } from "react-native";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 import axiosInstance from "../lib/axios";
 import SafeScreen from "./SafeScreen";
 import { Product } from "@/types";
-
 type OrderDetails = {
     _id: string;
     user?: {
@@ -38,7 +38,7 @@ type OrderDetails = {
         status?: string;
     };
     totalPrice: number;
-    status: "pending" | "shipped" | "delivered";
+    status: "pending" | "shipped" | "delivered" | "cancelled";
     createdAt: string;
     updatedAt: string;
     shippedAt?: string | null;
@@ -62,6 +62,14 @@ const formatDateTime = (value?: string | null) => {
 };
 
 export default function OrderDetailsView({ orderId, endpoint, title, subtitle }: Props) {
+    const queryClient = useQueryClient();
+    const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+    const isSeller = endpoint.includes("seller");
+    const isAdmin = endpoint.includes("admin") || endpoint.includes("super-admin");
+    const { user: clerkUser } = useUser();
+    const currentUserEmail = clerkUser?.emailAddresses?.[0]?.emailAddress?.toLowerCase?.();
+    const validStatuses = ["pending", "shipped", "delivered", "cancelled"];
+
     const { data, isLoading, isError } = useQuery({
         queryKey: [endpoint, orderId],
         queryFn: async () => {
@@ -70,6 +78,31 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
         },
         enabled: !!orderId,
     });
+
+    const updateStatusMutation = useMutation({
+        mutationFn: async (newStatus: string) => {
+            const res = await axiosInstance.patch(`${endpoint}/status`, {
+                status: newStatus,
+            });
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [endpoint, orderId] });
+            setStatusDropdownOpen(false);
+            Alert.alert("Success", "Order status updated successfully");
+        },
+        onError: (err: any) => {
+            Alert.alert("Error", err?.response?.data?.message || "Failed to update status");
+        },
+    });
+
+    const handleStatusChange = (newStatus: string) => {
+        if (newStatus === data?.status) {
+            setStatusDropdownOpen(false);
+            return;
+        }
+        updateStatusMutation.mutate(newStatus);
+    };
 
     if (isLoading) {
         return (
@@ -103,7 +136,9 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
             ? { bg: "bg-green-500/20", text: "text-green-500" }
             : data.status === "shipped"
                 ? { bg: "bg-blue-500/20", text: "text-blue-500" }
-                : { bg: "bg-orange-500/20", text: "text-orange-500" };
+                : data.status === "cancelled"
+                    ? { bg: "bg-red-500/20", text: "text-red-500" }
+                    : { bg: "bg-orange-500/20", text: "text-orange-500" };
 
     return (
         <SafeScreen>
@@ -120,11 +155,74 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
 
                 <View className="px-6 gap-4">
                     <View className="bg-surface rounded-3xl p-5">
-                        <View className="flex-row items-start justify-end">
-                            <View className={`${statusStyle.bg} px-3 py-1 rounded-full`}>
-                                <Text className={`${statusStyle.text} font-bold text-xs capitalize`}>{data.status}</Text>
+                        <View className="flex-row items-start justify-between">
+                            <View>
+                                <Text className="text-text-primary text-lg font-bold mb-4">Order Status</Text>
                             </View>
+                            {isSeller && (
+                                <View className="flex-1 items-end">
+                                    <TouchableOpacity
+                                        className={`px-4 py-2 rounded-full flex-row items-center gap-2 ${
+                                            data?.status === "delivered"
+                                                ? "bg-green-500/20"
+                                                : data?.status === "shipped"
+                                                    ? "bg-blue-500/20"
+                                                    : data?.status === "cancelled"
+                                                        ? "bg-red-500/20"
+                                                        : "bg-orange-500/20"
+                                        }`}
+                                        onPress={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                                        disabled={updateStatusMutation.isPending}
+                                    >
+                                        {updateStatusMutation.isPending ? (
+                                            <ActivityIndicator size="small" color="#fff" />
+                                        ) : (
+                                            <Ionicons name="chevron-down" size={16} color="#fff" />
+                                        )}
+                                        <Text className={`font-bold text-sm capitalize ${
+                                            data?.status === "delivered"
+                                                ? "text-green-600"
+                                                : data?.status === "shipped"
+                                                    ? "text-blue-600"
+                                                    : data?.status === "cancelled"
+                                                        ? "text-red-600"
+                                                        : "text-orange-600"
+                                        }`}>
+                                            {data?.status}
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    {statusDropdownOpen && (
+                                        <View className="absolute top-12 right-0 bg-surface border border-white/10 rounded-2xl p-2 z-10 min-w-40">
+                                            {validStatuses.map((status) => (
+                                                <TouchableOpacity
+                                                    key={status}
+                                                    className={`px-4 py-2 rounded-lg my-1 ${
+                                                        status === data?.status ? "bg-primary/20" : ""
+                                                    }`}
+                                                    onPress={() => handleStatusChange(status)}
+                                                    disabled={updateStatusMutation.isPending}
+                                                >
+                                                    <Text className={`capitalize font-semibold ${
+                                                        status === data?.status
+                                                            ? "text-primary"
+                                                            : "text-text-primary"
+                                                    }`}>
+                                                        {status}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
+                                    )}
+                                </View>
+                            )}
                         </View>
+                        {!isSeller && (
+                            <View className={`px-3 py-2 rounded-full w-fit ${statusStyle.bg}`}>
+                                <Text className={`${statusStyle.text} font-bold text-sm capitalize`}>{data?.status}</Text>
+                            </View>
+                        )}
+                    </View>
 
                         <View className="flex-row gap-3 mt-5">
                             <View className="flex-1 bg-black/20 rounded-2xl p-4">
@@ -139,7 +237,6 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
                                 </Text>
                             </View>
                         </View>
-                    </View>
 
                     <View className="bg-surface rounded-3xl p-5">
                         <Text className="text-text-primary text-lg font-bold mb-4">Customer</Text>
@@ -153,7 +250,13 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
                             </View>
                             <View className="flex-1">
                                 <Text className="text-text-primary font-semibold">{data.user?.name || "Unknown customer"}</Text>
-                                <Text className="text-text-secondary text-sm">{data.user?.email || "No email"}</Text>
+                                {(() => {
+                                    const orderUserEmail = data.user?.email?.toLowerCase?.();
+                                    const showEmail = isSeller || isAdmin || (currentUserEmail && orderUserEmail && currentUserEmail === orderUserEmail);
+                                    return showEmail ? (
+                                        <Text className="text-text-secondary text-sm">{data.user?.email || "No email"}</Text>
+                                    ) : null;
+                                })()}
                             </View>
                         </View>
                     </View>

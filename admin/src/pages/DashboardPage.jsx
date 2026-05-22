@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-react";
 import { activityApi, bannerApi, orderApi, productApi, statsApi, shopApi, userManagementApi } from "../lib/api";
+import { settingsApi } from "../lib/api";
 import {
   DollarSignIcon,
   PackageIcon,
@@ -68,6 +69,21 @@ function DashboardPage() {
     queryKey: ["recentActivities"],
     queryFn: activityApi.getRecent,
     enabled: isSuperAdmin,
+  });
+
+  const { data: settingsData, refetch: refetchSettings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: settingsApi.get,
+    enabled: isSuperAdmin,
+  });
+
+  const guestEnabled = settingsData?.settings?.guestEnabled ?? true;
+
+  const toggleGuestMutation = useMutation({
+    mutationFn: (enabled) => settingsApi.setGuestAccess(enabled),
+    onSuccess: () => {
+      refetchSettings();
+    },
   });
 
   const [formData, setFormData] = useState({
@@ -444,6 +460,24 @@ function DashboardPage() {
       </div>
 
       {/* ANALYTICS SECTION */}
+      {isSuperAdmin && (
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h3 className="card-title">Platform Settings</h3>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">Allow Guest Browsing</div>
+              <label className="swap swap-rotate">
+                <input
+                  type="checkbox"
+                  checked={guestEnabled}
+                  onChange={(e) => toggleGuestMutation.mutate(e.target.checked)}
+                />
+                <span className="ml-2">{guestEnabled ? 'Enabled' : 'Disabled'}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
       {isSuperAdmin ? (
         <SuperAdminAnalytics
           stats={statsData}

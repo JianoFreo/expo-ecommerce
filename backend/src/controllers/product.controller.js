@@ -19,7 +19,6 @@ async function getPlatformStoreShop() {
         description: 'Default marketplace shop for existing products',
         owner: adminUser._id,
     });
-
     return shop.populate('owner', 'name email');
 }
 
