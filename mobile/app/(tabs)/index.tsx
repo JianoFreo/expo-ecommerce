@@ -20,7 +20,6 @@ const CATEGORIES = [
 const ShopScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const { handleScroll } = useScrollContext();
 
   const { data: products, isLoading, isError } = useProducts();
   const { data: banner } = useHomeBanner();

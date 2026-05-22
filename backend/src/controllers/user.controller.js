@@ -51,25 +51,20 @@ export async function promoteToSeller(req, res) {
             return res.status(400).json({ error: "Super admin cannot be promoted to seller" });
         }
 
-        if (user.role === 'admin') {
+        const body = req.body || {};
+        const fallbackName = user.name ? `${user.name}'s Shop` : 'My Shop';
+        const rawShopName = typeof body.shopName === 'string' ? body.shopName.trim() : '';
+        const shopName = rawShopName || fallbackName;
+
+        // Update role to seller if needed (idempotent)
+        if (user.role !== 'seller') {
             user.role = 'seller';
             await user.save();
         }
 
-        // Check if user already has a seller account
-        const existingShop = await Shop.findOne({ owner: user._id });
-        if (existingShop && user.role === 'seller') {
-            return res.status(400).json({ error: "User is already a seller" });
-        }
-
-        // Update user role to seller
-        user.role = 'seller';
-        await user.save();
-
-        // Create shop if not exists
-        let shop = existingShop;
+        // Ensure seller has a shop
+        let shop = await Shop.findOne({ owner: user._id });
         if (!shop) {
-            const { shopName = `${user.name}'s Shop` } = req.body;
             shop = await Shop.create({
                 name: shopName,
                 description: '',
@@ -78,7 +73,7 @@ export async function promoteToSeller(req, res) {
         }
 
         res.status(200).json({
-            message: "User promoted to seller successfully",
+            message: "Seller account is ready",
             user: {
                 _id: user._id,
                 email: user.email,
