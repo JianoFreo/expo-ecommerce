@@ -11,6 +11,8 @@ import {
   CheckCircleIcon,
 } from "lucide-react";
 import { capitalizeText, formatDate, getOrderStatusBadge } from "../lib/utils";
+import SellerAnalytics from "../components/SellerAnalytics";
+import SuperAdminAnalytics from "../components/SuperAdminAnalytics";
 
 function DashboardPage() {
   const queryClient = useQueryClient();
@@ -440,6 +442,17 @@ function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* ANALYTICS SECTION */}
+      {isSuperAdmin ? (
+        <SuperAdminAnalytics
+          stats={statsData}
+          ordersData={ordersData?.orders || []}
+          usersData={usersData?.users || []}
+        />
+      ) : (
+        <SellerAnalytics stats={myShopStatsData?.stats} recentOrders={myShopStatsData?.recentOrders || []} />
+      )}
 
       {/* USERS MANAGEMENT - SUPER ADMIN ONLY */}
       {isSuperAdmin && (
