@@ -361,6 +361,66 @@ export async function deleteSellerProduct(req, res) {
   }
 }
 
+export async function updateOrderStatus(req, res) {
+  try {
+    const user = req.user;
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    // Valid status transitions
+    const validStatuses = ['pending', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    const shopIds = await getAccessibleShopIdsForSeller(user);
+    if (shopIds.length === 0) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    const productIds = await getShopProductIdsList(shopIds);
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Verify this seller has items in this order
+    const hasSellerItems = order.orderItems.some((item) => {
+      const itemProductId = item.product?._id?.toString?.() || (typeof item.product === 'string' ? item.product : item.product?.toString?.());
+      return itemProductId && productIds.some((id) => id.toString() === itemProductId);
+    });
+
+    if (!hasSellerItems) {
+      return res.status(403).json({ message: 'Not authorized to update this order' });
+    }
+
+    // Update order status
+    order.status = status;
+    if (status === 'shipped' && !order.shippedAt) {
+      order.shippedAt = new Date();
+    }
+    if (status === 'delivered' && !order.deliveredAt) {
+      order.deliveredAt = new Date();
+    }
+
+    await order.save();
+    
+    return res.status(200).json({ 
+      message: 'Order status updated successfully',
+      order: {
+        _id: order._id,
+        status: order.status,
+        shippedAt: order.shippedAt,
+        deliveredAt: order.deliveredAt,
+      }
+    });
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 // Helper to get product IDs for multiple shops
 async function getShopProductIdsList(shopIds) {
   const products = await Product.find({ shop: { $in: shopIds } }).select('_id');

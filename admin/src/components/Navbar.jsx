@@ -33,6 +33,11 @@ export const NAVIGATION = [
     icon: <ClipboardListIcon className="size-5" />,
   },
   {
+    name: "My Orders",
+    path: "/seller-orders",
+    icon: <ClipboardListIcon className="size-5" />,
+  },
+  {
     name: "Customers",
     path: "/customers",
     icon: <UsersIcon className="size-5" />,

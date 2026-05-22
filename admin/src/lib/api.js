@@ -157,3 +157,30 @@ export const settingsApi = {
         return data;
     },
 };
+
+export const sellerApi = {
+    getOrders: async () => {
+        const { data } = await axiosInstance.get('/seller/orders');
+        return data;
+    },
+
+    getOrderById: async (orderId) => {
+        const { data } = await axiosInstance.get(`/seller/orders/${orderId}`);
+        return data;
+    },
+
+    updateOrderStatus: async ({ orderId, status }) => {
+        const { data } = await axiosInstance.patch(`/seller/orders/${orderId}/status`, { status });
+        return data;
+    },
+
+    getProducts: async () => {
+        const { data } = await axiosInstance.get('/seller/products');
+        return data;
+    },
+
+    getStats: async () => {
+        const { data } = await axiosInstance.get('/seller/stats');
+        return data;
+    },
+};

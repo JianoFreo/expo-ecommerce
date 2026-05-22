@@ -15,6 +15,12 @@ function Sidebar() {
     if (item.path === "/shops") {
       return isSuperAdmin;
     }
+    if (item.path === "/orders") {
+      return isSuperAdmin;
+    }
+    if (item.path === "/seller-orders") {
+      return !isSuperAdmin;
+    }
     return true;
   });
 
