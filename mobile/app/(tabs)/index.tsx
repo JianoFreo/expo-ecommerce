@@ -6,15 +6,15 @@ import useProducts from "@/hooks/useProducts";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Image } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from "react-native";
 import FilterModal from "@/components/FilterModal";
 
 const CATEGORIES = [
   { name: "All", icon: "grid-outline" as const },
-  { name: "Electronics", image: require("@/assets/images/electronics.png") },
-  { name: "Fashion", image: require("@/assets/images/fashion.png") },
-  { name: "Sports", image: require("@/assets/images/sports.png") },
-  { name: "Books", image: require("@/assets/images/books.png") },
+  { name: "Electronics", icon: "phone-portrait-outline" as const },
+  { name: "Fashion", icon: "shirt-outline" as const },
+  { name: "Sports", icon: "football-outline" as const },
+  { name: "Books", icon: "book-outline" as const },
 ];
 
 const ShopScreen = () => {
@@ -28,6 +28,7 @@ const ShopScreen = () => {
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [appliedMinPrice, setAppliedMinPrice] = useState<number | null>(null);
   const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState("newest"); // newest, name-asc, name-desc, price-asc, price-desc, rating
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -66,8 +67,27 @@ const ShopScreen = () => {
       });
     }
 
-    return filtered;
-  }, [products, selectedCategory, searchQuery, appliedMinPrice, appliedMaxPrice]);
+    // apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "price-asc":
+          return (a.price || 0) - (b.price || 0);
+        case "price-desc":
+          return (b.price || 0) - (a.price || 0);
+        case "rating":
+          return (b.averageRating || 0) - (a.averageRating || 0);
+        case "newest":
+        default:
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      }
+    });
+
+    return sorted;
+  }, [products, selectedCategory, searchQuery, appliedMinPrice, appliedMaxPrice, sortBy]);
 
   return (
     <SafeScreen>
@@ -114,6 +134,8 @@ const ShopScreen = () => {
           maxPrice={maxPriceInput}
           setMinPrice={setMinPriceInput}
           setMaxPrice={setMaxPriceInput}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
           onClose={() => setFilterModalVisible(false)}
           onApply={() => {
             const min = parseFloat(minPriceInput);
@@ -139,15 +161,11 @@ const ShopScreen = () => {
                   onPress={() => setSelectedCategory(category.name)}
                   className={`mr-3 rounded-2xl size-20 overflow-hidden items-center justify-center ${isSelected ? "bg-primary" : "bg-surface"}`}
                 >
-                  {category.icon ? (
-                    <Ionicons
-                      name={category.icon}
-                      size={36}
-                      color={isSelected ? "#121212" : "#fff"}
-                    />
-                  ) : (
-                    <Image source={category.image} className="size-12" resizeMode="contain" />
-                  )}
+                  <Ionicons
+                    name={category.icon}
+                    size={36}
+                    color={isSelected ? "#121212" : "#fff"}
+                  />
                 </TouchableOpacity>
               );
             })}

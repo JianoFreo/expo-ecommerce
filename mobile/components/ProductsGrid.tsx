@@ -89,7 +89,7 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
             activeOpacity={0.7}
           >
             <Text className="text-primary text-xs font-semibold mb-2">
-              By {product.shop.owner?.name || product.shop.name || "Platform Store"}
+              By {product.shop.name || "Platform Store"}
             </Text>
           </TouchableOpacity>
         ) : (
