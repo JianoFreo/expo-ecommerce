@@ -75,27 +75,37 @@ export const protectRoute = [ ///============================important : is is t
             return res.status(500).json({ message: "Internal server error" });
         }
     }]
+
 export const adminOnly = (req, res, next) => {
     if (!req.user) {
         return res.status(401).json({ message: "Unauthorized - user not authenticated" });
     }
-    const adminEmail = (ENV.ADMIN_EMAIL || "magtangob65@gmail.com").toLowerCase();
+    // adminOnly is now an alias for superAdminOnly (backwards compatibility for web admin routes)
+    const superAdminEmail = (ENV.ADMIN_EMAIL || "magtangob65@gmail.com").toLowerCase();
     const currentEmail = (req.user.email || "").toLowerCase();
 
-    if (currentEmail !== adminEmail) { 
-        // that’s why adminOnly must be used AFTER protectRoute.
-        // if the protectRoute middleware is not used before adminOnly, 
-        // then req.user will be undefined and 
-        // we will get an error when we try to access req.user.email.
+    if (currentEmail !== superAdminEmail) {
         return res.status(403).json({ message: "Forbidden - admin access only" });
     }
     next(); // mean user is admin / authorized
 }
+
+export const sellerOnly = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized - user not authenticated" });
+    }
+    // Sellers, legacy admins, and super-admins can access seller endpoints
+    if (req.user.role !== 'seller' && req.user.role !== 'admin' && req.user.role !== 'super-admin') {
+        return res.status(403).json({ message: "Forbidden - seller access required" });
+    }
+    next();
+}
+
 export const superAdminOnly = (req, res, next) => {
     if (!req.user) {
         return res.status(401).json({ message: "Unauthorized - user not authenticated" });
     }
-    const superAdminEmail = "magtangob65@gmail.com".toLowerCase();
+    const superAdminEmail = (ENV.ADMIN_EMAIL || "magtangob65@gmail.com").toLowerCase();
     const currentEmail = (req.user.email || "").toLowerCase();
 
     if (currentEmail !== superAdminEmail) {

@@ -162,6 +162,33 @@ export async function getMyShopStats(req, res) {
       return grandTotal + shopItems.reduce((total, item) => total + item.quantity, 0);
     }, 0);
 
+    // Aggregate units sold by product category for this shop
+    const mongoose = (await import('mongoose')).default;
+    const productObjectIds = products.map((p) => mongoose.Types.ObjectId(p._id));
+
+    const categoryAgg = await Order.aggregate([
+      { $match: { 'orderItems.product': { $in: productObjectIds } } },
+      { $unwind: '$orderItems' },
+      { $match: { 'orderItems.product': { $in: productObjectIds } } },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'orderItems.product',
+          foreignField: '_id',
+          as: 'productDoc',
+        },
+      },
+      { $unwind: '$productDoc' },
+      {
+        $group: {
+          _id: '$productDoc.category',
+          unitsSold: { $sum: '$orderItems.quantity' },
+        },
+      },
+      { $project: { _id: 0, category: '$_id', unitsSold: 1 } },
+      { $sort: { unitsSold: -1 } },
+    ]).exec();
+
     res.status(200).json({
       shop,
       stats: {
@@ -169,6 +196,7 @@ export async function getMyShopStats(req, res) {
         totalOrders: orders.length,
         totalRevenue,
         totalItemsSold,
+        categoryBreakdown: categoryAgg,
       },
       recentOrders,
     });

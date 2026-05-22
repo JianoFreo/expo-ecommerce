@@ -34,6 +34,10 @@ export interface User {
   email: string;
   name: string;
   imageUrl: string;
+  role: 'user' | 'seller' | 'super-admin';
+  isBanned?: boolean;
+  bannedAt?: string | null;
+  bannedReason?: string;
   addresses: Address[];
   wishlist: string[];
   createdAt: string;
@@ -54,7 +58,7 @@ export interface Address {
 
 export interface Order {
   _id: string;
-  user: string;
+  user: string | User;
   clerkId: string;
   orderItems: OrderItem[];
   shippingAddress: {
@@ -65,13 +69,15 @@ export interface Order {
     zipCode: string;
     phoneNumber: string;
   };
-  paymentResult: {
-    id: string;
-    status: string;
+  paymentResult?: {
+    id?: string;
+    status?: string;
   };
   totalPrice: number;
   status: "pending" | "shipped" | "delivered";
   hasReviewed: boolean;
+  shippedAt?: string | null;
+  deliveredAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -18,6 +18,7 @@ import cartRoutes from './routes/cart.route.js';
 import paymentRoutes from "./routes/payment.route.js";
 import bannerRoutes from "./routes/banner.route.js";
 import shopRoutes from './routes/shop.route.js';
+import sellerRoutes from './routes/seller.route.js';
 
 const app = express();
 const __dirname = path.resolve();
@@ -72,13 +73,14 @@ app.get('/api/health', (req, res) => {
 
 //=================================routes folder=================================
 app.use("/api/admin", adminRoutes)
-app.use("/api/users", userRoutes)
+app.use("/api/user", userRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/reviews", reviewRoutes)
 app.use("/api/products", productRoutes)
 app.use("/api/carts", cartRoutes)
 app.use("/api/banner", bannerRoutes)
 app.use("/api/shops", shopRoutes)
+app.use("/api/seller", sellerRoutes)
 //===============================================================================
 
 

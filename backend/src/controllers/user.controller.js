@@ -1,4 +1,92 @@
 import { User } from "../models/user.model.js";
+import { Shop } from "../models/shop.model.js";
+import { ENV } from "../config/env.js";
+
+export async function getCurrentUserProfile(req, res) {
+    try {
+        const user = req.user;
+        
+        // Determine if user is super-admin
+        const superAdminEmail = (ENV.ADMIN_EMAIL || 'magtangob65@gmail.com').toLowerCase();
+        const isSuperAdmin = (user.email || '').toLowerCase() === superAdminEmail;
+        if (isSuperAdmin && user.role !== 'super-admin') {
+            user.role = 'super-admin';
+            await user.save();
+        }
+
+        // Normalize legacy admin role to seller so old migrated sellers keep working.
+        if (!isSuperAdmin && user.role === 'admin') {
+            user.role = 'seller';
+            await user.save();
+        }
+
+        // Get user's shop if they are a seller
+        let shop = null;
+        if (user.role === 'seller') {
+            shop = await Shop.findOne({ owner: user._id });
+        }
+
+        res.status(200).json({
+            user: {
+                _id: user._id,
+                email: user.email,
+                name: user.name,
+                imageUrl: user.imageUrl,
+                role: user.role,
+                clerkId: user.clerkId,
+            },
+            shop: shop || null,
+        });
+    } catch (error) {
+        console.error("Error in getCurrentUserProfile controller:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+export async function promoteToSeller(req, res) {
+    try {
+        const user = req.user;
+
+        if (user.role === 'super-admin') {
+            return res.status(400).json({ error: "Super admin cannot be promoted to seller" });
+        }
+
+        const body = req.body || {};
+        const fallbackName = user.name ? `${user.name}'s Shop` : 'My Shop';
+        const rawShopName = typeof body.shopName === 'string' ? body.shopName.trim() : '';
+        const shopName = rawShopName || fallbackName;
+
+        // Update role to seller if needed (idempotent)
+        if (user.role !== 'seller') {
+            user.role = 'seller';
+            await user.save();
+        }
+
+        // Ensure seller has a shop
+        let shop = await Shop.findOne({ owner: user._id });
+        if (!shop) {
+            shop = await Shop.create({
+                name: shopName,
+                description: '',
+                owner: user._id,
+            });
+        }
+
+        res.status(200).json({
+            message: "Seller account is ready",
+            user: {
+                _id: user._id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+            },
+            shop: shop.toObject(),
+        });
+    } catch (error) {
+        console.error("Error in promoteToSeller controller:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
 
 export async function addAddress(req, res) {
     try {
@@ -160,16 +248,15 @@ export async function getWishlist(req, res) {
 
 export async function updateProfile(req, res) {
     try {
-        const { name, imageUrl } = req.body;
+        const { name } = req.body;
 
         const user = req.user;
 
-        if (!name && !imageUrl) {
+        if (!name) {
             return res.status(400).json({ error: "Nothing to update" });
         }
 
         if (name) user.name = name;
-        if (imageUrl) user.imageUrl = imageUrl;
 
         await user.save();
 

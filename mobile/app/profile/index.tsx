@@ -1,7 +1,6 @@
 import SafeScreen from "@/components/SafeScreen";
-import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { useApi } from "@/lib/api";
-import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
@@ -12,60 +11,21 @@ export default function EditProfile() {
   const api = useApi();
 
   const [name, setName] = useState(user?.fullName || user?.firstName || user?.username || "");
-  const [imageUri, setImageUri] = useState(user?.imageUrl || "");
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const pickAvatar = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert("Permission required", "Please allow photo library access to choose an avatar.");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.9,
-    });
-
-    if (!result.canceled && result.assets[0]?.uri) {
-      setSelectedAvatar(result.assets[0].uri);
-      setImageUri(result.assets[0].uri);
-    }
-  };
 
   const handleSave = async () => {
     try {
       setLoading(true);
-      let uploadedImageUrl = user?.imageUrl || "";
 
-      if (selectedAvatar) {
-        const formData = new FormData();
-        formData.append("avatar", {
-          uri: selectedAvatar,
-          name: "avatar.jpg",
-          type: "image/jpeg",
-        } as any);
-
-        const uploadResponse = await api.post("/users/profile/avatar", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-
-        uploadedImageUrl = uploadResponse.data?.imageUrl || uploadedImageUrl;
-      }
-
-      await api.patch(`/users/profile`, {
+      await api.patch(`/user/profile`, {
         name,
-        imageUrl: uploadedImageUrl,
       });
 
       Alert.alert("Success", "Profile updated");
       router.back();
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Unable to update profile");
+    } catch (err: any) {
+      console.error("Profile update error:", err?.response?.data || err?.message);
+      Alert.alert("Error", err?.response?.data?.error || "Unable to update profile");
     } finally {
       setLoading(false);
     }
@@ -78,14 +38,11 @@ export default function EditProfile() {
 
         <View className="items-center mb-6">
           <Image
-            source={imageUri || user?.imageUrl}
+            source={user?.imageUrl}
             style={{ width: 96, height: 96, borderRadius: 48 }}
             contentFit="cover"
           />
-          <Pressable onPress={pickAvatar} className="mt-4 bg-primary px-4 py-3 rounded-full">
-            <Text className="text-background font-bold">Choose Avatar</Text>
-          </Pressable>
-          <Text className="text-text-secondary text-xs mt-2">Select a square image for best results</Text>
+          <Text className="text-text-secondary text-xs mt-3">Avatar changes are disabled</Text>
         </View>
 
         <Text className="text-sm text-text-secondary mb-1">Full name</Text>

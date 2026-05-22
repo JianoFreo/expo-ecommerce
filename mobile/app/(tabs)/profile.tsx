@@ -5,6 +5,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useAuthManager } from "@/hooks/useAuthManager";
 
 const MENU_ITEMS = [
   { id: 1, icon: "person-outline", title: "Edit Profile", color: "#3B82F6", action: "/profile" },
@@ -14,8 +15,8 @@ const MENU_ITEMS = [
 ] as const;
 
 const ProfileScreen = () => {
-  const { signOut } = useAuth();
   const { user } = useUser();
+  const { handleLogout, handleSwitchRole } = useAuthManager();
 
   const handleMenuPress = (action: (typeof MENU_ITEMS)[number]["action"]) => {
     router.push(action);
@@ -76,21 +77,6 @@ const ProfileScreen = () => {
           ))}
         </View>
 
-        {/* NOTIFICATIONS */}
-        <View className="mb-3 mx-6 bg-surface rounded-2xl p-4">
-          <TouchableOpacity
-            className="flex-row items-center justify-between py-2"
-            activeOpacity={0.7}
-            onPress={() => router.push('/notifications')}
-          >
-            <View className="flex-row items-center">
-              <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
-              <Text className="text-text-primary font-semibold ml-3">Notifications</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#666" />
-          </TouchableOpacity>
-        </View>
-
         {/* PRIVACY AND SECURITY LINK */}
         <View className="mb-3 mx-6 bg-surface rounded-2xl p-4">
           <TouchableOpacity
@@ -106,11 +92,21 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </View>
 
+        {/* SWITCH ROLE BTN */}
+        <TouchableOpacity
+          className="mx-6 mb-3 bg-surface rounded-2xl py-5 flex-row items-center justify-center border-2 border-orange-500/20"
+          activeOpacity={0.8}
+          onPress={() => handleSwitchRole("seller")}
+        >
+          <Ionicons name="swap-horizontal-outline" size={22} color="#F59E0B" />
+          <Text className="text-orange-500 font-bold text-base ml-2">Switch to Seller</Text>
+        </TouchableOpacity>
+
         {/* SIGNOUT BTN */}
         <TouchableOpacity
           className="mx-6 mb-3 bg-surface rounded-2xl py-5 flex-row items-center justify-center border-2 border-red-500/20"
           activeOpacity={0.8}
-          onPress={() => signOut()}
+          onPress={handleLogout}
         >
           <Ionicons name="log-out-outline" size={22} color="#EF4444" />
           <Text className="text-red-500 font-bold text-base ml-2">Sign Out</Text>

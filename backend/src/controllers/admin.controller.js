@@ -301,8 +301,17 @@ export async function updateProduct(req, res) {
 export async function getAllOrders(req, res) {
     try {
         const orders = await Order.find()
-            .populate("user", "name email")
-            .populate("orderItems.product")
+            .populate("user", "name email imageUrl")
+            .populate({
+                path: "orderItems.product",
+                populate: {
+                    path: "shop",
+                    populate: {
+                        path: "owner",
+                        select: "name email imageUrl",
+                    },
+                },
+            })
             .sort({ createdAt: -1 });
         res.status(200).json({ orders });
 
@@ -321,6 +330,33 @@ export async function getAllOrders(req, res) {
     catch (error) {
         console.error("Error in getAllOrders controller:", error);
         res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function getOrderByIdAdmin(req, res) {
+    try {
+        const { orderId } = req.params;
+        const order = await Order.findById(orderId)
+            .populate("user", "name email imageUrl clerkId")
+            .populate({
+                path: "orderItems.product",
+                populate: {
+                    path: "shop",
+                    populate: {
+                        path: "owner",
+                        select: "name email imageUrl",
+                    },
+                },
+            });
+
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        return res.status(200).json({ order });
+    } catch (error) {
+        console.error("Error fetching admin order by id:", error);
+        return res.status(500).json({ message: "Internal server error" });
     }
 }
 

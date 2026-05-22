@@ -5,6 +5,7 @@ import { useApi } from "@/lib/api";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -15,6 +16,7 @@ import * as Sentry from "@sentry/react-native";
 
 const CartScreen = () => {
   const api = useApi();
+  const queryClient = useQueryClient();
   const {
     cart,
     cartItemCount,
@@ -46,7 +48,11 @@ const CartScreen = () => {
     updateQuantity({ productId, quantity: newQuantity });
   };
 
-  const handleRemoveItem = (productId: string, productName: string) => {
+  const handleRemoveItem = (productId: string | undefined, productName: string) => {
+    if (!productId) {
+      Alert.alert("Error", "Product ID not found");
+      return;
+    }
     Alert.alert("Remove Item", `Remove ${productName} from cart?`, [
       { text: "Cancel", style: "cancel" },
       {
@@ -136,6 +142,7 @@ const CartScreen = () => {
           itemCount: cartItems.length,
         });
 
+        await queryClient.invalidateQueries({ queryKey: ["orders"] });
         Alert.alert("Success", "Your payment was successful! Your order is being processed.", [
           { text: "OK", onPress: () => {} },
         ]);
@@ -168,7 +175,7 @@ const CartScreen = () => {
 
       const { data } = await api.post("/orders", {
         orderItems: cartItems.map((item) => ({
-          product: item.product,
+          product: item.product._id,  // Send only the product ID, not the full object
           name: item.product.name,
           price: item.product.price,
           quantity: item.quantity,
@@ -195,19 +202,30 @@ const CartScreen = () => {
         itemCount: cartItems.length,
       });
 
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
       Alert.alert(
         "Order placed",
         "Your cash on delivery order has been placed successfully.",
         [{ text: "OK", onPress: () => clearCart() }]
       );
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const axiosError = (error as any)?.response?.data?.error || errorMessage;
+      
       Sentry.logger.error("Cash on delivery failed", {
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: axiosError,
+        status: (error as any)?.response?.status,
         cartTotal: total,
         itemCount: cartItems.length,
       });
 
-      Alert.alert("Error", "Failed to place cash on delivery order");
+      console.error("[Cart] COD Error:", {
+        message: axiosError,
+        status: (error as any)?.response?.status,
+        fullError: error,
+      });
+
+      Alert.alert("Error", `Failed to place cash on delivery order: ${axiosError}`);
     } finally {
       setPaymentLoading(false);
     }
@@ -233,7 +251,7 @@ const CartScreen = () => {
                 {/* product image */}
                 <View className="relative">
                   <Image
-                    source={item.product.images[0]}
+                    source={item.product?.images?.[0] || undefined}
                     className="bg-background-lighter"
                     contentFit="cover"
                     style={{ width: 112, height: 112, borderRadius: 16 }}
@@ -249,14 +267,14 @@ const CartScreen = () => {
                       className="text-text-primary font-bold text-lg leading-tight"
                       numberOfLines={2}
                     >
-                      {item.product.name}
+                      {item.product?.name || "Unknown product"}
                     </Text>
                     <View className="flex-row items-center mt-2">
                       <Text className="text-primary font-bold text-2xl">
-                        ${(item.product.price * item.quantity).toFixed(2)}
+                        ${((item.product?.price || 0) * item.quantity).toFixed(2)}
                       </Text>
                       <Text className="text-text-secondary text-sm ml-2">
-                        ${item.product.price.toFixed(2)} each
+                        ${(item.product?.price || 0).toFixed(2)} each
                       </Text>
                     </View>
                   </View>
@@ -265,8 +283,8 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="bg-background-lighter rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleQuantityChange(item.product._id, item.quantity, -1)}
-                      disabled={isUpdating}
+                      onPress={() => item.product && handleQuantityChange(item.product._id, item.quantity, -1)}
+                      disabled={isUpdating || !item.product}
                     >
                       {isUpdating ? (
                         <ActivityIndicator size="small" color="#FFFFFF" />
@@ -282,8 +300,8 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="bg-primary rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleQuantityChange(item.product._id, item.quantity, 1)}
-                      disabled={isUpdating}
+                      onPress={() => item.product && handleQuantityChange(item.product._id, item.quantity, 1)}
+                      disabled={isUpdating || !item.product}
                     >
                       {isUpdating ? (
                         <ActivityIndicator size="small" color="#121212" />
@@ -295,8 +313,8 @@ const CartScreen = () => {
                     <TouchableOpacity
                       className="ml-auto bg-red-500/10 rounded-full w-9 h-9 items-center justify-center"
                       activeOpacity={0.7}
-                      onPress={() => handleRemoveItem(item.product._id, item.product.name)}
-                      disabled={isRemoving}
+                      onPress={() => item.product && handleRemoveItem(item.product._id, item.product?.name || "this item")}
+                      disabled={isRemoving || !item.product}
                     >
                       <Ionicons name="trash-outline" size={18} color="#EF4444" />
                     </TouchableOpacity>

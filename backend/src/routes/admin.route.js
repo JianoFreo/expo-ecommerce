@@ -11,6 +11,7 @@ import {
     deleteProduct,
     updateProduct,
     getAllOrders,
+    getOrderByIdAdmin,
     updateOrderStatus,
     getAllCustomers,
     getDashboardStats,
@@ -38,6 +39,7 @@ router.get("/products", getAllProducts);
 router.put("/products/:id", upload.array("images", 3), updateProduct);
 
 router.get("/orders", getAllOrders);
+router.get("/orders/:orderId", getOrderByIdAdmin);
 router.patch("/orders/:orderId/status", updateOrderStatus); //pending -> shipped -> delivered
 
 //PUT : update the whole resource, full resource replacement
