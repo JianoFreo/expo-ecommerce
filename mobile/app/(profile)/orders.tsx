@@ -89,7 +89,12 @@ function OrdersScreen() {
               const firstImage = order.orderItems[0]?.image || "";
 
               return (
-                <View key={order._id} className="bg-surface rounded-3xl p-5 mb-4">
+                <TouchableOpacity
+                  key={order._id}
+                  className="bg-surface rounded-3xl p-5 mb-4"
+                  activeOpacity={0.75}
+                  onPress={() => router.push(`/(profile)/orders/${order._id}`)}
+                >
                   <View className="flex-row mb-4">
                     <View className="relative">
                       <Image
@@ -167,7 +172,7 @@ function OrdersScreen() {
                         </TouchableOpacity>
                       ))}
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>

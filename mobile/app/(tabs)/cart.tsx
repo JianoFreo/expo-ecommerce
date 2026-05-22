@@ -5,6 +5,7 @@ import { useApi } from "@/lib/api";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -15,6 +16,7 @@ import * as Sentry from "@sentry/react-native";
 
 const CartScreen = () => {
   const api = useApi();
+  const queryClient = useQueryClient();
   const {
     cart,
     cartItemCount,
@@ -140,6 +142,7 @@ const CartScreen = () => {
           itemCount: cartItems.length,
         });
 
+        await queryClient.invalidateQueries({ queryKey: ["orders"] });
         Alert.alert("Success", "Your payment was successful! Your order is being processed.", [
           { text: "OK", onPress: () => {} },
         ]);
@@ -199,6 +202,7 @@ const CartScreen = () => {
         itemCount: cartItems.length,
       });
 
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
       Alert.alert(
         "Order placed",
         "Your cash on delivery order has been placed successfully.",

@@ -29,6 +29,21 @@ async function getAccessibleShopIdsForSeller(user) {
   return [];
 }
 
+function filterOrderToSellerItems(order, shopProductIds) {
+  const sellerProductIdSet = new Set(shopProductIds.map((id) => id.toString()));
+  const sellerItems = order.orderItems.filter((item) =>
+    sellerProductIdSet.has(item.product?._id?.toString() || item.product?.toString())
+  );
+
+  return {
+    ...order.toObject(),
+    orderItems: sellerItems,
+    totalPrice: Math.round(
+      sellerItems.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0) * 100
+    ) / 100,
+  };
+}
+
 export async function getSellerProducts(req, res) {
   try {
     const user = req.user;
@@ -69,7 +84,11 @@ export async function getSellerOrders(req, res) {
       })
       .sort({ createdAt: -1 });
 
-    res.status(200).json(orders);
+    const sellerOrders = orders
+      .map((order) => filterOrderToSellerItems(order, productIds))
+      .filter((order) => order.orderItems.length > 0);
+
+    res.status(200).json(sellerOrders);
   } catch (error) {
     console.error('Error fetching seller orders:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -106,7 +125,7 @@ export async function getSellerOrderById(req, res) {
 
     if (!hasSellerItems) return res.status(404).json({ message: 'Order not found' });
 
-    return res.status(200).json({ order });
+    return res.status(200).json({ order: filterOrderToSellerItems(order, productIds) });
   } catch (error) {
     console.error('Error fetching seller order by id:', error);
     return res.status(500).json({ message: 'Internal server error' });

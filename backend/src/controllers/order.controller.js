@@ -124,3 +124,36 @@ export async function getUserOrders(req, res) {
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
+export async function getUserOrderById(req, res) {
+    try {
+        const { orderId } = req.params;
+        const order = await Order.findOne({
+            _id: orderId,
+            $or: [
+                { user: req.user._id },
+                { clerkId: req.user.clerkId },
+            ],
+        })
+            .populate({
+                path: "orderItems.product",
+                populate: {
+                    path: "shop",
+                    populate: {
+                        path: "owner",
+                        select: "name email imageUrl",
+                    },
+                },
+            });
+
+        if (!order) {
+            return res.status(404).json({ error: "Order not found" });
+        }
+
+        const orderObject = order.toObject();
+        return res.status(200).json({ order: orderObject });
+    } catch (error) {
+        console.error("Error in getUserOrderById controller:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
