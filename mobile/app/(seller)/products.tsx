@@ -87,27 +87,39 @@ export default function SellerProducts() {
       // use fetch to POST/PATCH multipart so RN handles boundaries correctly
       const token = await getToken();
       const base = axiosInstance.defaults.baseURL;
-      if (editingProduct?._id) {
-        const res = await fetch(`${base}/seller/products/${editingProduct._id}`, {
-          method: "PATCH",
+      const makeRequest = async (url: string, method: string) => {
+        const res = await fetch(url, {
+          method,
           headers: {
             Authorization: token ? `Bearer ${token}` : undefined,
           },
           body: payload,
         });
-        if (!res.ok) throw new Error("Failed to update product");
-        return res.json();
+
+        let body: any = null;
+        try {
+          body = await res.json();
+        } catch (e) {
+          // ignore json parse errors
+        }
+
+        if (!res.ok) {
+          const message = body?.message || body?.error || body?.errors || res.statusText || "Request failed";
+          const err = new Error(typeof message === "string" ? message : JSON.stringify(message));
+          // attach status for higher-level handling
+          (err as any).status = res.status;
+          (err as any).body = body;
+          throw err;
+        }
+
+        return body;
+      };
+
+      if (editingProduct?._id) {
+        return await makeRequest(`${base}/seller/products/${editingProduct._id}`, "PATCH");
       }
 
-      const res = await fetch(`${base}/seller/products`, {
-        method: "POST",
-        headers: {
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
-        body: payload,
-      });
-      if (!res.ok) throw new Error("Failed to create product");
-      return res.json();
+      return await makeRequest(`${base}/seller/products`, "POST");
     },
     onSuccess: async () => {
       await Promise.all([
@@ -120,7 +132,31 @@ export default function SellerProducts() {
       setForm(defaultForm);
     },
     onError: (err: any) => {
-      Alert.alert("Save failed", err?.response?.data?.message || err?.message || "Could not save product");
+      console.error("Product upsert error:", err, (err && err.body) || null);
+      const message = err?.message || "Could not save product";
+
+      if ((err as any)?.status === 403) {
+        Alert.alert("Seller access required", "You need seller access to create products.", [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Promote & Retry",
+            onPress: async () => {
+              try {
+                // call promote endpoint
+                await axiosInstance.post("/user/promote-to-seller");
+                Alert.alert("Promoted", "Your account was promoted to seller. Retrying upload...");
+                // retry the mutation with same form state
+                upsertMutation.mutate();
+              } catch (promErr: any) {
+                console.error("Promote error:", promErr);
+                Alert.alert("Promotion failed", promErr?.response?.data?.error || promErr?.message || "Failed to promote account to seller");
+              }
+            },
+          },
+        ]);
+      } else {
+        Alert.alert("Save failed", message);
+      }
     },
   });
 

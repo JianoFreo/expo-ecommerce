@@ -16,7 +16,7 @@ const MENU_ITEMS = [
 
 const ProfileScreen = () => {
   const { user } = useUser();
-  const { handleSwitchRole, handleLogout } = useAuthManager();
+  const { handleLogout, handleSwitchRole } = useAuthManager();
 
   const handleMenuPress = (action: (typeof MENU_ITEMS)[number]["action"]) => {
     router.push(action);

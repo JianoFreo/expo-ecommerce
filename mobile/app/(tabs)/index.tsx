@@ -7,6 +7,7 @@ import useProducts from "@/hooks/useProducts";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Image } from "react-native";
+import FilterModal from "@/components/FilterModal";
 
 const CATEGORIES = [
   { name: "All", icon: "grid-outline" as const },
@@ -19,9 +20,15 @@ const CATEGORIES = [
 const ShopScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const { handleScroll } = useScrollContext();
 
   const { data: products, isLoading, isError } = useProducts();
   const { data: banner } = useHomeBanner();
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [minPriceInput, setMinPriceInput] = useState("");
+  const [maxPriceInput, setMaxPriceInput] = useState("");
+  const [appliedMinPrice, setAppliedMinPrice] = useState<number | null>(null);
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -48,8 +55,20 @@ const ShopScreen = () => {
       );
     }
 
+    // filter by price range
+    const min = appliedMinPrice;
+    const max = appliedMaxPrice;
+    if (min != null || max != null) {
+      filtered = filtered.filter((product) => {
+        const price = typeof product.price === "number" ? product.price : parseFloat(String(product.price || 0));
+        if (min != null && price < min) return false;
+        if (max != null && price > max) return false;
+        return true;
+      });
+    }
+
     return filtered;
-  }, [products, selectedCategory, searchQuery]);
+  }, [products, selectedCategory, searchQuery, appliedMinPrice, appliedMaxPrice]);
 
   return (
     <SafeScreen>
@@ -66,7 +85,11 @@ const ShopScreen = () => {
               <Text className="text-text-secondary text-sm mt-1">Browse all products</Text>
             </View>
 
-            <TouchableOpacity className="bg-surface/50 p-3 rounded-full" activeOpacity={0.7}>
+            <TouchableOpacity
+              className="bg-surface/50 p-3 rounded-full"
+              activeOpacity={0.7}
+              onPress={() => setFilterModalVisible(true)}
+            >
               <Ionicons name="options-outline" size={22} color={"#fff"} />
             </TouchableOpacity>
           </View>
@@ -85,6 +108,22 @@ const ShopScreen = () => {
         </View>
 
         <HomePromoBanner banner={banner || { key: "home-banner", product: null, isActive: false }} />
+
+        <FilterModal
+          visible={filterModalVisible}
+          minPrice={minPriceInput}
+          maxPrice={maxPriceInput}
+          setMinPrice={setMinPriceInput}
+          setMaxPrice={setMaxPriceInput}
+          onClose={() => setFilterModalVisible(false)}
+          onApply={() => {
+            const min = parseFloat(minPriceInput);
+            const max = parseFloat(maxPriceInput);
+            setAppliedMinPrice(Number.isFinite(min) ? min : null);
+            setAppliedMaxPrice(Number.isFinite(max) ? max : null);
+            setFilterModalVisible(false);
+          }}
+        />
 
         {/* CATEGORY FILTER */}
         <View className="mb-6">

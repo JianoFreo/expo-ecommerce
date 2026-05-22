@@ -14,7 +14,7 @@ const useWishlist = () => {
     queryKey: ["wishlist"],
     queryFn: async () => {
       try {
-        const { data } = await api.get<{ wishlist: Product[] }>("/users/wishlist");
+        const { data } = await api.get<{ wishlist: Product[] }>("/user/wishlist");
         return data.wishlist || [];
       } catch (error) {
         console.warn("Failed to fetch wishlist:", error);
@@ -25,7 +25,7 @@ const useWishlist = () => {
 
   const addToWishlistMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const { data } = await api.post<{ wishlist: string[] }>("/users/wishlist", { productId });
+      const { data } = await api.post<{ wishlist: string[] }>("/user/wishlist", { productId });
       return data.wishlist;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wishlist"] }),
@@ -33,7 +33,7 @@ const useWishlist = () => {
 
   const removeFromWishlistMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const { data } = await api.delete<{ wishlist: string[] }>(`/users/wishlist/${productId}`);
+      const { data } = await api.delete<{ wishlist: string[] }>(`/user/wishlist/${productId}`);
       return data.wishlist;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wishlist"] }),
