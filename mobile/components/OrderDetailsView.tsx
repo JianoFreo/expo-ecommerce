@@ -78,7 +78,7 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
 
     const updateStatusMutation = useMutation({
         mutationFn: async (newStatus: string) => {
-            const res = await axiosInstance.patch(`${endpoint.replace(/\/[^/]*$/, '')}/orders/${orderId}/status`, {
+            const res = await axiosInstance.patch(`${endpoint}/status`, {
                 status: newStatus,
             });
             return res.data;
@@ -234,7 +234,6 @@ export default function OrderDetailsView({ orderId, endpoint, title, subtitle }:
                                 </Text>
                             </View>
                         </View>
-                    </View>
 
                     <View className="bg-surface rounded-3xl p-5">
                         <Text className="text-text-primary text-lg font-bold mb-4">Customer</Text>
