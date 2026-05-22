@@ -154,8 +154,8 @@ A full-stack e-commerce platform built with **Expo (React Native)**, **React + V
 
 #================================ SUPER ADMIN ===========================================
 <img width="1919" height="904" alt="image" src="https://github.com/user-attachments/assets/a200aaa2-adfd-42e6-83bf-86b193464743" />
-<img width="1879" height="908" alt="image" src="https://github.com/user-attachments/assets/51181474-2881-4d74-b80a-41521c113d24" />
-<img width="1904" height="905" alt="image" src="https://github.com/user-attachments/assets/2b9d54f7-f251-4b1c-9d9c-cbc91523d065" />
+<img width="1919" height="906" alt="image" src="https://github.com/user-attachments/assets/43570fde-0429-4e9b-adf8-8e00df91a0d5" />
+<img width="1883" height="904" alt="image" src="https://github.com/user-attachments/assets/c476c591-683a-4783-8c2b-b0cb0feeca4a" />
 
 
 #================================ SELLER ===========================================
