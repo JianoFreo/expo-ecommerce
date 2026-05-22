@@ -3,6 +3,15 @@ import { Product } from "../models/product.model.js";
 import { Review } from "../models/review.model.js";
 import { Activity } from "../models/activity.model.js";
 
+function getProductIdFromItem(item) {
+    if (!item) return null;
+    if (typeof item.product === 'string') return item.product;
+    if (item.product && typeof item.product === 'object' && item.product._id) {
+        return item.product._id.toString();
+    }
+    return null;
+}
+
 export async function createOrder(req, res) {
     try {
         const user = req.user;
@@ -12,23 +21,46 @@ export async function createOrder(req, res) {
             return res.status(400).json({ error: "No order items" });
         }
 
-        // validate products and stock
+        // normalize and validate order items (support item.product as object or string id)
+        const normalizedItems = [];
         for (const item of orderItems) {
-            const product = await Product.findById(item.product._id);
-            if (!product) {
-                return res.status(404).json({ error: `Product ${item.name} not found` });
+            const productId = getProductIdFromItem(item);
+            const quantity = Number(item?.quantity || 0);
+            const price = Number(item?.price || 0);
+
+            if (!productId) {
+                return res.status(400).json({ error: "Invalid order item: missing product id" });
             }
-            if (product.stock < item.quantity) {
+            if (!Number.isFinite(quantity) || quantity < 1) {
+                return res.status(400).json({ error: "Invalid order item quantity" });
+            }
+            if (!Number.isFinite(price) || price < 0) {
+                return res.status(400).json({ error: "Invalid order item price" });
+            }
+
+            const product = await Product.findById(productId);
+            if (!product) {
+                return res.status(404).json({ error: `Product ${item?.name || productId} not found` });
+            }
+            if (product.stock < quantity) {
                 return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
             }
+
+            normalizedItems.push({
+                product: product._id,
+                name: item?.name || product.name,
+                price,
+                quantity,
+                image: item?.image || product.images?.[0] || "",
+            });
         }
 
         const order = await Order.create({
             user: user._id,
             clerkId: user.clerkId,
-            orderItems,
+            orderItems: normalizedItems,
             shippingAddress,
-            paymentResult,
+            paymentResult: paymentResult || {},
             totalPrice,
         });
 
@@ -40,10 +72,10 @@ export async function createOrder(req, res) {
             metadata: { totalPrice, itemCount: orderItems.length },
         });
 
-        // update product stock
-        for (const item of orderItems) {
-            await Product.findByIdAndUpdate(item.product._id, {
-                $inc: { stock: -item.quantity }, // decrement stock by quantity ordered -- babawasan ang stock per order item
+        // update product stock by ordered quantities
+        for (const item of normalizedItems) {
+            await Product.findByIdAndUpdate(item.product, {
+                $inc: { stock: -item.quantity },
             });
         }
 
@@ -56,10 +88,13 @@ export async function createOrder(req, res) {
 
 export async function getUserOrders(req, res) {
     try {
-        // “Find all orders in the database that belong to this logged-in user.”
-        // req.user.clerkId = who the user is (from login)
-        // so you're filtering only their orders
-        const orders = await Order.find({ clerkId: req.user.clerkId })
+        // Fetch by either internal user id or clerk id for legacy compatibility
+        const orders = await Order.find({
+            $or: [
+                { user: req.user._id },
+                { clerkId: req.user.clerkId },
+            ],
+        })
             .populate("orderItems.product")
             .sort({ createdAt: -1 });
 
