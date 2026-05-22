@@ -1,6 +1,8 @@
 import SafeScreen from "@/components/SafeScreen";
 import useCart from "@/hooks/useCart";
 import useWishlist from "@/hooks/useWishlist";
+import { useAuth } from '@clerk/clerk-expo';
+import { useRole } from '@/context/RoleContext';
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -24,7 +26,14 @@ function WishlistScreen() {
     ]);
   };
 
+  const { isLoaded, isSignedIn } = useAuth();
+  const { selectedRole } = useRole();
+
   const handleAddToCart = (productId: string, productName: string) => {
+    if (!isLoaded || !isSignedIn || selectedRole === 'guest') {
+      return Alert.alert('Sign in required', 'Please sign in to add items to your cart.');
+    }
+
     addToCart(
       { productId, quantity: 1 },
       {

@@ -1,5 +1,6 @@
 import SafeScreen from "@/components/SafeScreen";
 import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useRole } from '@/context/RoleContext';
 
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
@@ -16,11 +17,31 @@ const MENU_ITEMS = [
 
 const ProfileScreen = () => {
   const { user } = useUser();
+  const { selectedRole } = useRole();
+  const { isLoaded, isSignedIn } = useAuth();
   const { handleLogout, handleSwitchRole } = useAuthManager();
 
   const handleMenuPress = (action: (typeof MENU_ITEMS)[number]["action"]) => {
     router.push(action);
   };
+
+  if (!isSignedIn || selectedRole === 'guest') {
+    return (
+      <SafeScreen>
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons name="person-circle-outline" size={88} color="#666" />
+          <Text className="text-text-primary font-semibold text-xl mt-4">Please sign in</Text>
+          <Text className="text-text-secondary text-center mt-2">Sign in to access your profile, wishlist and cart.</Text>
+          <TouchableOpacity
+            className="bg-primary rounded-2xl px-6 py-3 mt-6"
+            onPress={() => router.push('/(auth)')}
+          >
+            <Text className="text-background font-bold">Sign In / Sign Up</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeScreen>
+    );
+  }
 
   return (
     <SafeScreen>

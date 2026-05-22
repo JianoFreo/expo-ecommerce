@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 
-type UserRole = 'buyer' | 'seller' | null;
+type UserRole = 'buyer' | 'seller' | 'guest' | null;
 
 interface RoleContextType {
   selectedRole: UserRole;

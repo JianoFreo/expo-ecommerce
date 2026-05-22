@@ -2,6 +2,8 @@ import SafeScreen from "@/components/SafeScreen";
 import useCart from "@/hooks/useCart";
 import { useProduct } from "@/hooks/useProduct";
 import useWishlist from "@/hooks/useWishlist";
+import { useRole } from '@/context/RoleContext';
+import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -32,8 +34,15 @@ const ProductDetailScreen = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
+  const { selectedRole } = useRole();
+  const { isLoaded, isSignedIn } = useAuth();
+
   const handleAddToCart = () => {
     if (!product) return;
+    if (!isLoaded || !isSignedIn || selectedRole === 'guest') {
+      return Alert.alert('Sign in required', 'Please sign in to add items to your cart.');
+    }
+
     addToCart(
       { productId: product._id, quantity },
       {
@@ -66,7 +75,12 @@ const ProductDetailScreen = () => {
           className={`w-12 h-12 rounded-full items-center justify-center ${
             isInWishlist(product._id) ? "bg-primary" : "bg-black/50 backdrop-blur-xl"
           }`}
-          onPress={() => toggleWishlist(product._id)}
+          onPress={() => {
+            if (!isLoaded || !isSignedIn || selectedRole === 'guest') {
+              return Alert.alert('Sign in required', 'Please sign in to add items to your wishlist.');
+            }
+            toggleWishlist(product._id);
+          }}
           disabled={isAddingToWishlist || isRemovingFromWishlist}
           activeOpacity={0.7}
         >

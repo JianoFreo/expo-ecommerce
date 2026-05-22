@@ -146,3 +146,14 @@ export const userManagementApi = {
         return data;
     },
 };
+
+export const settingsApi = {
+    get: async () => {
+        const { data } = await axiosInstance.get('/settings');
+        return data;
+    },
+    setGuestAccess: async (enabled) => {
+        const { data } = await axiosInstance.patch('/settings/guest-access', { enabled });
+        return data;
+    },
+};
