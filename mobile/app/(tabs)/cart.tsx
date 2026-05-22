@@ -175,7 +175,7 @@ const CartScreen = () => {
 
       const { data } = await api.post("/orders", {
         orderItems: cartItems.map((item) => ({
-          product: item.product,
+          product: item.product._id,  // Send only the product ID, not the full object
           name: item.product.name,
           price: item.product.price,
           quantity: item.quantity,
@@ -209,13 +209,23 @@ const CartScreen = () => {
         [{ text: "OK", onPress: () => clearCart() }]
       );
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const axiosError = (error as any)?.response?.data?.error || errorMessage;
+      
       Sentry.logger.error("Cash on delivery failed", {
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: axiosError,
+        status: (error as any)?.response?.status,
         cartTotal: total,
         itemCount: cartItems.length,
       });
 
-      Alert.alert("Error", "Failed to place cash on delivery order");
+      console.error("[Cart] COD Error:", {
+        message: axiosError,
+        status: (error as any)?.response?.status,
+        fullError: error,
+      });
+
+      Alert.alert("Error", `Failed to place cash on delivery order: ${axiosError}`);
     } finally {
       setPaymentLoading(false);
     }

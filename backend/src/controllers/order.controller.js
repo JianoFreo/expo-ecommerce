@@ -21,6 +21,18 @@ export async function createOrder(req, res) {
             return res.status(400).json({ error: "No order items" });
         }
 
+        if (!shippingAddress) {
+            return res.status(400).json({ error: "Shipping address is required" });
+        }
+
+        // Validate required shipping address fields
+        const requiredFields = ['fullName', 'streetAddress', 'city', 'state', 'zipCode', 'phoneNumber'];
+        for (const field of requiredFields) {
+            if (!shippingAddress[field]) {
+                return res.status(400).json({ error: `Shipping address: ${field} is required` });
+            }
+        }
+
         // normalize and validate order items (support item.product as object or string id)
         const normalizedItems = [];
         for (const item of orderItems) {
@@ -81,8 +93,9 @@ export async function createOrder(req, res) {
 
         res.status(201).json({ message: "Order created successfully", order });
     } catch (error) {
-        console.error("Error in createOrder controller:", error);
-        res.status(500).json({ error: "Internal server error" });
+        console.error("Error in createOrder controller:", error.message || error);
+        const errorMessage = error.message || "Internal server error";
+        res.status(500).json({ error: errorMessage });
     }
 }
 
