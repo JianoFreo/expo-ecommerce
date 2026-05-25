@@ -4,6 +4,7 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@ta
 import { ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RoleProvider } from "@/context/RoleContext";
 import AuthTokenBridge from "@/components/AuthTokenBridge";
 import GuestBanner from '@/components/GuestBanner';
@@ -34,16 +35,18 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   return (
-    <RoleProvider>
-      <ClerkProvider tokenCache={tokenCache}>
-        <AuthTokenBridge />
-        <GuestBanner />
-        <QueryClientProvider client={queryClient}>
-          <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
-            <Stack screenOptions={{ headerShown: false }} />
-          </StripeProvider>
-        </QueryClientProvider>
-      </ClerkProvider>
-    </RoleProvider>
+    <SafeAreaProvider>
+      <RoleProvider>
+        <ClerkProvider tokenCache={tokenCache}>
+          <AuthTokenBridge />
+          <GuestBanner />
+          <QueryClientProvider client={queryClient}>
+            <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
+              <Stack screenOptions={{ headerShown: false }} />
+            </StripeProvider>
+          </QueryClientProvider>
+        </ClerkProvider>
+      </RoleProvider>
+    </SafeAreaProvider>
   );
 }
