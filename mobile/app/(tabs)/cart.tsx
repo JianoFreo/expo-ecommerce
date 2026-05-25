@@ -15,8 +15,6 @@ import { useAuth } from "@clerk/clerk-expo";
 import { useRole } from "@/context/RoleContext";
 import { router } from "expo-router";
 
-import * as Sentry from "@sentry/react-native";
-
 const CartScreen = () => {
   const api = useApi();
   const queryClient = useQueryClient();
@@ -95,7 +93,7 @@ const CartScreen = () => {
     setAddressModalVisible(false);
 
     // log chechkout initiated
-    Sentry.logger.info("Checkout initiated", {
+    console.info("Checkout initiated", {
       itemCount: cartItemCount,
       total: total.toFixed(2),
       city: selectedAddress.city,
@@ -123,7 +121,7 @@ const CartScreen = () => {
       });
 
       if (initError) {
-        Sentry.logger.error("Payment sheet init failed", {
+        console.error("Payment sheet init failed", {
           errorCode: initError.code,
           errorMessage: initError.message,
           cartTotal: total,
@@ -139,7 +137,7 @@ const CartScreen = () => {
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
-        Sentry.logger.error("Payment cancelled", {
+        console.error("Payment cancelled", {
           errorCode: presentError.code,
           errorMessage: presentError.message,
           cartTotal: total,
@@ -148,7 +146,7 @@ const CartScreen = () => {
 
         Alert.alert("Payment cancelled", presentError.message);
       } else {
-        Sentry.logger.info("Payment successful", {
+        console.info("Payment successful", {
           total: total.toFixed(2),
           itemCount: cartItems.length,
         });
@@ -160,7 +158,7 @@ const CartScreen = () => {
         clearCart();
       }
     } catch (error) {
-      Sentry.logger.error("Payment failed", {
+      console.error("Payment failed", {
         error: error instanceof Error ? error.message : "Unknown error",
         cartTotal: total,
         itemCount: cartItems.length,
@@ -175,7 +173,7 @@ const CartScreen = () => {
   const handleCashOnDelivery = async (selectedAddress: Address) => {
     setAddressModalVisible(false);
 
-    Sentry.logger.info("Cash on delivery initiated", {
+    console.info("Cash on delivery initiated", {
       itemCount: cartItemCount,
       total: total.toFixed(2),
       city: selectedAddress.city,
@@ -207,7 +205,7 @@ const CartScreen = () => {
         totalPrice: total,
       });
 
-      Sentry.logger.info("Cash on delivery order created", {
+      console.info("Cash on delivery order created", {
         orderId: data?.order?._id,
         total: total.toFixed(2),
         itemCount: cartItems.length,
@@ -223,7 +221,7 @@ const CartScreen = () => {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       const axiosError = (error as any)?.response?.data?.error || errorMessage;
       
-      Sentry.logger.error("Cash on delivery failed", {
+      console.error("Cash on delivery failed", {
         error: axiosError,
         status: (error as any)?.response?.status,
         cartTotal: total,
