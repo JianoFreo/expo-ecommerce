@@ -1,8 +1,12 @@
 import axios from "axios";
 
-// Use environment variable or default to localhost for development
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.7:3000/api";
+  process.env.EXPO_PUBLIC_API_URL ||
+  "https://expo-ecommerce-5lbs.onrender.com/api";
+
+if (!API_BASE_URL) {
+  throw new Error("EXPO_PUBLIC_API_URL is not set");
+}
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -14,7 +18,9 @@ const axiosInstance = axios.create({
 
 let tokenGetter: null | (() => Promise<string | null>) = null;
 
-export function setAxiosTokenGetter(getter: null | (() => Promise<string | null>)) {
+export function setAxiosTokenGetter(
+  getter: null | (() => Promise<string | null>),
+) {
   tokenGetter = getter;
 }
 
@@ -31,7 +37,7 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor for error handling
@@ -43,7 +49,7 @@ axiosInstance.interceptors.response.use(
       console.error("Unauthorized access");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;
