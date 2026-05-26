@@ -137,7 +137,7 @@ const CartScreen = () => {
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
-        console.error("Payment cancelled", {
+        console.info("Payment cancelled", {
           errorCode: presentError.code,
           errorMessage: presentError.message,
           cartTotal: total,
