@@ -49,8 +49,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "cd65d36b-7e69-4813-8e4d-fc5e51d342bb"
+        "projectId": "8ad1ef61-212a-473e-914d-2cc3ffbe8905"
       }
-    }
+    },
+    "owner": "jiano_freo"
   }
 }
