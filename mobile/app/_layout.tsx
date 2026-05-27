@@ -41,7 +41,7 @@ export default function RootLayout() {
           <AuthTokenBridge />
           <GuestBanner />
           <QueryClientProvider client={queryClient}>
-            <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
+            <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY! || "pk_test_51TYuWiBQ1VXJ0n7TvbraK2UGzNojJ7P7cTTowroKlCCKHNsQgDPSvFF6cTVOZ0VP9W1ubgIDa19wnqpEEeHCe5zf000mxmpSHh"!}>
               <Stack screenOptions={{ headerShown: false }} />
             </StripeProvider>
           </QueryClientProvider>
