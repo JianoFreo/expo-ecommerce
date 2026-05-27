@@ -5,6 +5,10 @@
   <img src="https://img.shields.io/badge/DOWNLOAD%20APK-00C853?style=for-the-badge&logo=android&logoColor=white" />
 </a>
 
+<a href="https://expo-ecommerce-5lbs.onrender.com/dashboard">
+  <img src="https://img.shields.io/badge/Click%20to%20access%20seller's%20web%20interface-007BFF?style=for-the-badge" />
+</a>
+
 A full-stack e-commerce platform built with **Expo (React Native)**, **React + Vite** (Admin), and **Node.js + Express** (Backend). Features multi-seller support, real-time order management, analytics, guest browsing, and Stripe/COD payments.
 
 <table>
