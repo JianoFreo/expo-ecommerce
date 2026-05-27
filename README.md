@@ -2,7 +2,7 @@
 
 
 <a href="https://raw.githubusercontent.com/JianoFreo/expo-ecommerce/main/JFreo%20Marketplace.apk" download>
-  <img src="https://img.shields.io/badge/⬇%20DOWNLOAD%20APK-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/DOWNLOAD%20APK-00C853?style=for-the-badge&logo=android&logoColor=white" />
 </a>
 
 A full-stack e-commerce platform built with **Expo (React Native)**, **React + Vite** (Admin), and **Node.js + Express** (Backend). Features multi-seller support, real-time order management, analytics, guest browsing, and Stripe/COD payments.
