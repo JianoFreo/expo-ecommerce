@@ -103,8 +103,8 @@ A full-stack e-commerce platform built with **Expo (React Native)**, **React + V
 
 
 
-### =======SUPER ADMIN - MANAGES THE ENTIRE APP DETAILS AND ACTIVITY=========
-###====================ONLY ONE PERSON CAN ACCESS (ME)======================
+### SUPER ADMIN - MANAGES THE ENTIRE APP DETAILS AND ACTIVITY
+### =====ONLY ONE PERSON CAN ACCESS (ME)====
 
 
 
@@ -152,16 +152,14 @@ A full-stack e-commerce platform built with **Expo (React Native)**, **React + V
 </table>
 
 
-#====================== WEB PAGE - SUPER ADMIN AND SELLER ONLY ========================
-
-
-#================================ SUPER ADMIN ===========================================
+# == WEB PAGE - SUPER ADMIN AND SELLER ONLY ===
+# ============ SUPER ADMIN ==================
 <img width="1919" height="904" alt="image" src="https://github.com/user-attachments/assets/a200aaa2-adfd-42e6-83bf-86b193464743" />
 <img width="1919" height="906" alt="image" src="https://github.com/user-attachments/assets/43570fde-0429-4e9b-adf8-8e00df91a0d5" />
 <img width="1883" height="904" alt="image" src="https://github.com/user-attachments/assets/c476c591-683a-4783-8c2b-b0cb0feeca4a" />
 
 
-#================================ SELLER ===========================================
+# ======== SELLER ============
 
 <img width="1919" height="909" alt="image" src="https://github.com/user-attachments/assets/d447bde4-d876-4b73-ae89-8e3632bfef6a" />
 
