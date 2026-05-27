@@ -1,5 +1,8 @@
 # JianoFreo Marketplace - E-commerce Platform
 
+
+## [📱 Click to Download Android APK](JFreo%20Marketplace.apk)
+
 A full-stack e-commerce platform built with **Expo (React Native)**, **React + Vite** (Admin), and **Node.js + Express** (Backend). Features multi-seller support, real-time order management, analytics, guest browsing, and Stripe/COD payments.
 
 <table>
