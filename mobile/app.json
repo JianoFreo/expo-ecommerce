@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mobile",
+    "name": "JFreo Marketplace",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -40,7 +40,16 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.mobile"
+        }
+      ],
+      "expo-font",
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
