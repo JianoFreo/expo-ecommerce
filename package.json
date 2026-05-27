@@ -25,5 +25,9 @@
   "homepage": "https://github.com/JianoFreo/expo-ecommerce#readme",
   "dependencies": {
     "expo": "~54.0.25"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
   }
 }

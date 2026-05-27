@@ -37,7 +37,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <RoleProvider>
-        <ClerkProvider tokenCache={tokenCache}>
+        <ClerkProvider
+          tokenCache={tokenCache}
+          publishableKey={"pk_test_YWRhcHRlZC1oZXJyaW5nLTQ0LmNsZXJrLmFjY291bnRzLmRldiQ"}
+        >
           <AuthTokenBridge />
           <GuestBanner />
           <QueryClientProvider client={queryClient}>
