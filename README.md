@@ -161,7 +161,7 @@ A full-stack e-commerce platform built with **Expo (React Native)**, **React + V
 # == WEB PAGE - SUPER ADMIN AND SELLER ONLY ===
 # ============ SUPER ADMIN ==================
 <img width="1919" height="904" alt="image" src="https://github.com/user-attachments/assets/a200aaa2-adfd-42e6-83bf-86b193464743" />
-<img width="1919" height="906" alt="image" src="https://github.com/user-attachments/assets/43570fde-0429-4e9b-adf8-8e00df91a0d5" />
+<img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/ffd6b7c3-83dd-4540-88f6-cc4cd1e3ea8e" />
 <img width="1883" height="904" alt="image" src="https://github.com/user-attachments/assets/c476c591-683a-4783-8c2b-b0cb0feeca4a" />
 
 
