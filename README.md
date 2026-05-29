@@ -129,7 +129,7 @@ A full-stack e-commerce platform built with **Expo (React Native)**, **React + V
 
 <h2><b>USERS HANDLING</b></h2>
 
-<img width="455" height="969" alt="image" src="https://github.com/user-attachments/assets/118c3930-1f2c-4f87-a22d-240396ee4e0d" />
+<img width="424" height="901" alt="image" src="https://github.com/user-attachments/assets/7349d7cc-6bed-478c-8fe1-050e78a25719" />
 
 </td>
 </tr>
