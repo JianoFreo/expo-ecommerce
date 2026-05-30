@@ -1,7 +1,9 @@
 import SafeScreen from "@/components/SafeScreen";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useRole } from '@/context/RoleContext';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,11 +17,59 @@ const MENU_ITEMS = [
   { id: 4, icon: "heart-outline", title: "Wishlist", color: "#EF4444", action: "/wishlist" },
 ] as const;
 
+const THEME_STORAGE_KEY = "buyer-profile-theme";
+
+const THEME_OPTIONS = [
+  { id: "green", label: "Green", subtitle: "Classic storefront", icon: "leaf-outline", primary: "#1DB954" },
+  { id: "blue", label: "Blue", subtitle: "Cool and clean", icon: "water-outline", primary: "#3B82F6" },
+  { id: "orange", label: "Orange", subtitle: "Warm and bold", icon: "sunny-outline", primary: "#F97316" },
+  { id: "rose", label: "Rose", subtitle: "Soft and modern", icon: "heart-outline", primary: "#F43F5E" },
+] as const;
+
+type ThemeId = (typeof THEME_OPTIONS)[number]["id"];
+
+const DEFAULT_THEME = THEME_OPTIONS[0];
+
+const getThemeById = (themeId: string | null | undefined) =>
+  THEME_OPTIONS.find((theme) => theme.id === themeId) ?? DEFAULT_THEME;
+
 const ProfileScreen = () => {
   const { user } = useUser();
   const { selectedRole } = useRole();
   const { isLoaded, isSignedIn } = useAuth();
   const { handleLogout, handleSwitchRole } = useAuthManager();
+  const [selectedThemeId, setSelectedThemeId] = useState<ThemeId>(DEFAULT_THEME.id);
+
+  const selectedTheme = getThemeById(selectedThemeId);
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (mounted && savedTheme) {
+          setSelectedThemeId(getThemeById(savedTheme).id);
+        }
+      } catch (error) {
+        console.warn("Failed to load buyer theme", error);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleThemeChange = async (themeId: ThemeId) => {
+    setSelectedThemeId(themeId);
+
+    try {
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, themeId);
+    } catch (error) {
+      console.warn("Failed to persist buyer theme", error);
+    }
+  };
 
   const handleMenuPress = (action: (typeof MENU_ITEMS)[number]["action"]) => {
     router.push(action);
@@ -33,7 +83,8 @@ const ProfileScreen = () => {
           <Text className="text-text-primary font-semibold text-xl mt-4">Please sign in</Text>
           <Text className="text-text-secondary text-center mt-2">Sign in to access your profile, wishlist and cart.</Text>
           <TouchableOpacity
-            className="bg-primary rounded-2xl px-6 py-3 mt-6"
+              className="rounded-2xl px-6 py-3 mt-6"
+              style={{ backgroundColor: selectedTheme.primary }}
             onPress={() => router.push('/(auth)')}
           >
             <Text className="text-background font-bold">Sign In / Sign Up</Text>
@@ -52,7 +103,10 @@ const ProfileScreen = () => {
       >
         {/* HEADER */}
         <View className="px-6 pb-8">
-          <View className="bg-surface rounded-3xl p-6">
+          <View
+            className="bg-surface rounded-3xl p-6"
+            style={{ borderWidth: 1, borderColor: `${selectedTheme.primary}22` }}
+          >
             <View className="flex-row items-center">
               <View className="relative">
                 <Image
@@ -60,7 +114,10 @@ const ProfileScreen = () => {
                   style={{ width: 80, height: 80, borderRadius: 40 }}
                   transition={200}
                 />
-                <View className="absolute -bottom-1 -right-1 bg-primary rounded-full size-7 items-center justify-center border-2 border-surface">
+                <View
+                  className="absolute -bottom-1 -right-1 rounded-full size-7 items-center justify-center border-2 border-surface"
+                  style={{ backgroundColor: selectedTheme.primary }}
+                >
                   <Ionicons name="checkmark" size={16} color="#121212" />
                 </View>
               </View>
@@ -77,6 +134,48 @@ const ProfileScreen = () => {
           </View>
         </View>
 
+        {/* THEME PICKER */}
+        <View className="mb-4 mx-6 bg-surface rounded-2xl p-4">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-text-primary text-lg font-bold">Theme</Text>
+            <View className="flex-row items-center">
+              <View className="rounded-full w-2.5 h-2.5 mr-2" style={{ backgroundColor: selectedTheme.primary }} />
+              <Text className="text-text-secondary text-xs uppercase tracking-wide">
+                {selectedTheme.label}
+              </Text>
+            </View>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 8 }}>
+            {THEME_OPTIONS.map((theme, index) => {
+              const isSelected = theme.id === selectedTheme.id;
+
+              return (
+                <TouchableOpacity
+                  key={theme.id}
+                  className="rounded-2xl px-4 py-3 mr-3 border"
+                  activeOpacity={0.8}
+                  onPress={() => handleThemeChange(theme.id)}
+                  style={{
+                    backgroundColor: isSelected ? `${theme.primary}18` : "#181818",
+                    borderColor: isSelected ? theme.primary : "#3E3E3E",
+                    marginRight: index === THEME_OPTIONS.length - 1 ? 0 : 12,
+                  }}
+                >
+                  <View
+                    className="w-10 h-10 rounded-full items-center justify-center mb-2"
+                    style={{ backgroundColor: `${theme.primary}20` }}
+                  >
+                    <Ionicons name={theme.icon} size={20} color={theme.primary} />
+                  </View>
+                  <Text className="text-text-primary font-semibold text-sm">{theme.label}</Text>
+                  <Text className="text-text-secondary text-xs mt-0.5">{theme.subtitle}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
         {/* MENU ITEMS */}
         <View className="flex-row flex-wrap gap-2 mx-6 mb-3">
           {MENU_ITEMS.map((item) => (
@@ -89,9 +188,9 @@ const ProfileScreen = () => {
             >
               <View
                 className="rounded-full w-16 h-16 items-center justify-center mb-4"
-                style={{ backgroundColor: item.color + "20" }}
+                style={{ backgroundColor: `${selectedTheme.primary}20` }}
               >
-                <Ionicons name={item.icon} size={28} color={item.color} />
+                <Ionicons name={item.icon} size={28} color={selectedTheme.primary} />
               </View>
               <Text className="text-text-primary font-bold text-base">{item.title}</Text>
             </TouchableOpacity>
@@ -106,7 +205,7 @@ const ProfileScreen = () => {
             onPress={() => router.push('/privacy-security')}
           >
             <View className="flex-row items-center">
-              <Ionicons name="shield-checkmark-outline" size={22} color="#FFFFFF" />
+              <Ionicons name="shield-checkmark-outline" size={22} color={selectedTheme.primary} />
               <Text className="text-text-primary font-semibold ml-3">Privacy & Security</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
