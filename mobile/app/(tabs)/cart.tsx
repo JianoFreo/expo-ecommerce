@@ -14,6 +14,7 @@ import AddressSelectionModal from "@/components/AddressSelectionModal";
 import { useAuth } from "@clerk/clerk-expo";
 import { useRole } from "@/context/RoleContext";
 import { router } from "expo-router";
+import { useBuyerTheme } from "@/context/ThemeContext";
 
 const CartScreen = () => {
   const api = useApi();
@@ -33,6 +34,7 @@ const CartScreen = () => {
     updateQuantity,
   } = useCart();
   const { addresses } = useAddresses();
+  const { theme } = useBuyerTheme();
 
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
@@ -265,7 +267,7 @@ const CartScreen = () => {
                     contentFit="cover"
                     style={{ width: 112, height: 112, borderRadius: 16 }}
                   />
-                  <View className="absolute top-2 right-2 bg-primary rounded-full px-2 py-0.5">
+                  <View className="absolute top-2 right-2 rounded-full px-2 py-0.5" style={{ backgroundColor: theme.primary }}>
                     <Text className="text-background text-xs font-bold">×{item.quantity}</Text>
                   </View>
                 </View>
@@ -279,7 +281,7 @@ const CartScreen = () => {
                       {item.product?.name || "Unknown product"}
                     </Text>
                     <View className="flex-row items-center mt-2">
-                      <Text className="text-primary font-bold text-2xl">
+                      <Text className="font-bold text-2xl" style={{ color: theme.primary }}>
                         ${((item.product?.price || 0) * item.quantity).toFixed(2)}
                       </Text>
                       <Text className="text-text-secondary text-sm ml-2">
@@ -307,7 +309,8 @@ const CartScreen = () => {
                     </View>
 
                     <TouchableOpacity
-                      className="bg-primary rounded-full w-9 h-9 items-center justify-center"
+                      className="rounded-full w-9 h-9 items-center justify-center"
+                      style={{ backgroundColor: theme.primary }}
                       activeOpacity={0.7}
                       onPress={() => item.product && handleQuantityChange(item.product._id, item.quantity, 1)}
                       disabled={isUpdating || !item.product}
@@ -344,7 +347,7 @@ const CartScreen = () => {
         {/* Quick Stats */}
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
-            <Ionicons name="cart" size={20} color="#1DB954" />
+            <Ionicons name="cart" size={20} color={theme.primary} />
             <Text className="text-text-secondary ml-2">
               {cartItemCount} {cartItemCount === 1 ? "item" : "items"}
             </Text>
@@ -356,7 +359,8 @@ const CartScreen = () => {
 
         {/* Checkout Button */}
         <TouchableOpacity
-          className="bg-primary rounded-2xl overflow-hidden"
+          className="rounded-2xl overflow-hidden"
+          style={{ backgroundColor: theme.primary }}
           activeOpacity={0.9}
           onPress={handleCheckout}
           disabled={paymentLoading}

@@ -1,8 +1,13 @@
 import axios from "axios";
+import { Platform } from "react-native";
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ||
-  "https://expo-ecommerce-5lbs.onrender.com/api";
+const rawApiBaseUrl =
+  process.env.EXPO_PUBLIC_API_URL || "https://expo-ecommerce-5lbs.onrender.com/api";
+
+const API_BASE_URL = rawApiBaseUrl.replace(
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/,
+  Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000"
+);
 
 if (!API_BASE_URL) {
   throw new Error("EXPO_PUBLIC_API_URL is not set");

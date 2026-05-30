@@ -56,6 +56,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+    preferredTheme: {
+        type: String,
+        enum: ['green', 'blue', 'orange', 'rose'],
+        default: 'green',
+    },
     clerkId: {
         type: String,
         required: true,

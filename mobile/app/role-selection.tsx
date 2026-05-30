@@ -25,7 +25,7 @@ const RoleSelectionScreen = () => {
         if (mounted) setGuestEnabled(Boolean(data?.settings?.guestEnabled));
       } catch (err) {
         console.warn('Failed to fetch settings', err);
-        if (mounted) setGuestEnabled(false);
+        if (mounted) setGuestEnabled(true);
       }
     })();
     return () => { mounted = false; };

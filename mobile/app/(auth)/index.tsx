@@ -20,7 +20,7 @@ const AuthScreen = () => {
         const { data } = await api.get('/settings');
         if (mounted) setGuestEnabled(Boolean(data?.settings?.guestEnabled));
       } catch (err) {
-        if (mounted) setGuestEnabled(false);
+        if (mounted) setGuestEnabled(true);
       }
     })();
     return () => { mounted = false; };

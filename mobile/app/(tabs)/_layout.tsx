@@ -5,10 +5,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { StyleSheet } from "react-native";
 import { useRole } from "@/context/RoleContext";
+import { useBuyerTheme } from "@/context/ThemeContext";
 
 const TabsLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const { selectedRole } = useRole();
+  const { theme } = useBuyerTheme();
   const insets = useSafeAreaInsets();
 
   if (!isLoaded) return null; // for a better ux
@@ -18,7 +20,7 @@ const TabsLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#1DB954",
+        tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: "#B3B3B3",
         tabBarStyle: {
           position: "absolute",

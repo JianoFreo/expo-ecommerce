@@ -3,6 +3,7 @@ import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { View, Text, Modal, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { useBuyerTheme } from "@/context/ThemeContext";
 
 interface AddressSelectionModalProps {
   visible: boolean;
@@ -21,6 +22,7 @@ const AddressSelectionModal = ({
 }: AddressSelectionModalProps) => {
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const { addresses, isLoading: addressesLoading } = useAddresses();
+  const { theme } = useBuyerTheme();
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
@@ -38,30 +40,30 @@ const AddressSelectionModal = ({
           <ScrollView className="flex-1 p-6">
             {addressesLoading ? (
               <View className="py-8">
-                <ActivityIndicator size="large" color="#00D9FF" />
+                <ActivityIndicator size="large" color={theme.primary} />
               </View>
             ) : (
               <View className="gap-4">
                 {addresses?.map((address: Address) => (
                   <TouchableOpacity
                     key={address._id}
-                    className={`bg-surface rounded-3xl p-6 border-2 ${
-                      selectedAddress?._id === address._id
-                        ? "border-primary"
-                        : "border-background-lighter"
-                    }`}
+                    className="bg-surface rounded-3xl p-6 border-2"
+                    style={{
+                      borderColor:
+                        selectedAddress?._id === address._id ? theme.primary : "#282828",
+                    }}
                     activeOpacity={0.7}
                     onPress={() => setSelectedAddress(address)}
                   >
                     <View className="flex-row items-start justify-between">
                       <View className="flex-1">
                         <View className="flex-row items-center mb-3">
-                          <Text className="text-primary font-bold text-lg mr-2">
+                          <Text className="font-bold text-lg mr-2" style={{ color: theme.primary }}>
                             {address.label}
                           </Text>
                           {address.isDefault && (
-                            <View className="bg-primary/20 rounded-full px-3 py-1">
-                              <Text className="text-primary text-sm font-semibold">Default</Text>
+                            <View className="rounded-full px-3 py-1" style={{ backgroundColor: `${theme.primary}20` }}>
+                              <Text className="text-sm font-semibold" style={{ color: theme.primary }}>Default</Text>
                             </View>
                           )}
                         </View>
@@ -77,7 +79,7 @@ const AddressSelectionModal = ({
                         <Text className="text-text-secondary text-base">{address.phoneNumber}</Text>
                       </View>
                       {selectedAddress?._id === address._id && (
-                        <View className="bg-primary rounded-full p-2 ml-3">
+                        <View className="rounded-full p-2 ml-3" style={{ backgroundColor: theme.primary }}>
                           <Ionicons name="checkmark" size={24} color="#121212" />
                         </View>
                       )}
@@ -90,7 +92,8 @@ const AddressSelectionModal = ({
 
           <View className="p-6 border-t border-surface gap-3">
             <TouchableOpacity
-              className="bg-primary rounded-2xl py-5"
+              className="rounded-2xl py-5"
+              style={{ backgroundColor: theme.primary }}
               activeOpacity={0.9}
               onPress={() => {
                 if (selectedAddress) onProceed(selectedAddress);

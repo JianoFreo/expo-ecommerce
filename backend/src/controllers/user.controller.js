@@ -34,6 +34,7 @@ export async function getCurrentUserProfile(req, res) {
                 imageUrl: user.imageUrl,
                 role: user.role,
                 clerkId: user.clerkId,
+                preferredTheme: user.preferredTheme || 'green',
             },
             shop: shop || null,
         });
@@ -248,19 +249,29 @@ export async function getWishlist(req, res) {
 
 export async function updateProfile(req, res) {
     try {
-        const { name } = req.body;
+        const { name, preferredTheme } = req.body;
 
         const user = req.user;
 
-        if (!name) {
+        if (!name && !preferredTheme) {
             return res.status(400).json({ error: "Nothing to update" });
         }
 
         if (name) user.name = name;
+        if (preferredTheme) user.preferredTheme = preferredTheme;
 
         await user.save();
 
-        res.status(200).json({ message: "Profile updated successfully", user: { id: user._id, name: user.name, imageUrl: user.imageUrl, email: user.email } });
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                imageUrl: user.imageUrl,
+                email: user.email,
+                preferredTheme: user.preferredTheme || 'green',
+            },
+        });
     } catch (error) {
         console.error("Error in updateProfile controller:", error);
         res.status(500).json({ error: "Internal server error" });

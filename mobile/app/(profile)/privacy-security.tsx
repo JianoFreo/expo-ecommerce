@@ -1,4 +1,5 @@
 import SafeScreen from "@/components/SafeScreen";
+import { useBuyerTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -20,6 +21,7 @@ function PrivacyAndSecurityScreen() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [shareData, setShareData] = useState(false);
+  const { theme } = useBuyerTheme();
 
   const securitySettings: SecurityOption[] = [
     {
@@ -152,8 +154,8 @@ function PrivacyAndSecurityScreen() {
               activeOpacity={setting.type === "toggle" ? 1 : 0.7}
             >
               <View className="flex-row items-center">
-                <View className="bg-primary/20 rounded-full w-12 h-12 items-center justify-center mr-4">
-                  <Ionicons name={setting.icon as any} size={24} color="#1DB954" />
+                <View className="rounded-full w-12 h-12 items-center justify-center mr-4" style={{ backgroundColor: `${theme.primary}20` }}>
+                  <Ionicons name={setting.icon as any} size={24} color={theme.primary} />
                 </View>
 
                 <View className="flex-1">
@@ -168,7 +170,7 @@ function PrivacyAndSecurityScreen() {
                     value={setting.value}
                     onValueChange={(value) => handleToggle(setting.id, value)}
                     thumbColor="#FFFFFF"
-                    trackColor={{ false: "#2A2A2A", true: "#1DB954" }}
+                    trackColor={{ false: "#2A2A2A", true: theme.primary }}
 
                     // ios_backgroundColor={"purple"}
                   />
@@ -188,8 +190,8 @@ function PrivacyAndSecurityScreen() {
             <View key={setting.id}>
               <View className="bg-surface rounded-2xl p-4 mb-3">
                 <View className="flex-row items-center">
-                  <View className="bg-primary/20 rounded-full w-12 h-12 items-center justify-center mr-4">
-                    <Ionicons name={setting.icon as any} size={24} color="#1DB954" />
+                  <View className="rounded-full w-12 h-12 items-center justify-center mr-4" style={{ backgroundColor: `${theme.primary}20` }}>
+                    <Ionicons name={setting.icon as any} size={24} color={theme.primary} />
                   </View>
                   <View className="flex-1">
                     <Text className="text-text-primary font-bold text-base mb-1">
@@ -200,7 +202,7 @@ function PrivacyAndSecurityScreen() {
                   <Switch
                     value={setting.value}
                     onValueChange={(value) => handleToggle(setting.id, value)}
-                    trackColor={{ false: "#2A2A2A", true: "#1DB954" }}
+                    trackColor={{ false: "#2A2A2A", true: theme.primary }}
                     thumbColor="#FFFFFF"
                   />
                 </View>
@@ -220,8 +222,8 @@ function PrivacyAndSecurityScreen() {
               activeOpacity={0.7}
             >
               <View className="flex-row items-center">
-                <View className="bg-primary/20 rounded-full w-12 h-12 items-center justify-center mr-4">
-                  <Ionicons name={setting.icon as any} size={24} color="#1DB954" />
+                <View className="rounded-full w-12 h-12 items-center justify-center mr-4" style={{ backgroundColor: `${theme.primary}20` }}>
+                  <Ionicons name={setting.icon as any} size={24} color={theme.primary} />
                 </View>
                 <View className="flex-1">
                   <Text className="text-text-primary font-bold text-base mb-1">
@@ -256,8 +258,8 @@ function PrivacyAndSecurityScreen() {
 
         {/* INFO ALERT */}
         <View className="px-6 pt-6 pb-4">
-          <View className="bg-primary/10 rounded-2xl p-4 flex-row">
-            <Ionicons name="information-circle-outline" size={24} color="#1DB954" />
+          <View className="rounded-2xl p-4 flex-row" style={{ backgroundColor: `${theme.primary}10` }}>
+            <Ionicons name="information-circle-outline" size={24} color={theme.primary} />
             <Text className="text-text-secondary text-sm ml-3 flex-1">
               We take your privacy seriously. Your data is encrypted and stored securely. You can
               manage your privacy settings at any time.

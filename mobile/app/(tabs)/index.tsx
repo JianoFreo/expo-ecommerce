@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, TextInput } from "react-native";
 import FilterModal from "@/components/FilterModal";
+import { useBuyerTheme } from "@/context/ThemeContext";
 
 const CATEGORIES = [
   { name: "All", icon: "grid-outline" as const },
@@ -23,6 +24,7 @@ const ShopScreen = () => {
 
   const { data: products, isLoading, isError } = useProducts();
   const { data: banner } = useHomeBanner();
+  const { theme } = useBuyerTheme();
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [minPriceInput, setMinPriceInput] = useState("");
   const [maxPriceInput, setMaxPriceInput] = useState("");
@@ -159,7 +161,8 @@ const ShopScreen = () => {
                 <TouchableOpacity
                   key={category.name}
                   onPress={() => setSelectedCategory(category.name)}
-                  className={`mr-3 rounded-2xl size-20 overflow-hidden items-center justify-center ${isSelected ? "bg-primary" : "bg-surface"}`}
+                  className="mr-3 rounded-2xl size-20 overflow-hidden items-center justify-center bg-surface"
+                  style={isSelected ? { backgroundColor: theme.primary } : undefined}
                 >
                   <Ionicons
                     name={category.icon}

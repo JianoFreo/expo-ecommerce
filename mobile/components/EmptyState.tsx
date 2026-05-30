@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useBuyerTheme } from "@/context/ThemeContext";
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -16,6 +17,8 @@ export function EmptyState({
   description,
   header,
 }: EmptyStateProps) {
+  const { theme } = useBuyerTheme();
+
   return (
     <View className="flex-1 bg-background">
       {header && (
@@ -24,7 +27,7 @@ export function EmptyState({
         </View>
       )}
       <View className="flex-1 items-center justify-center px-6">
-        <Ionicons name={icon} size={iconSize} color="#666" />
+        <Ionicons name={icon} size={iconSize} color={theme.primary} />
         <Text className="text-text-primary font-semibold text-xl mt-4">{title}</Text>
         {description && <Text className="text-text-secondary text-center mt-2">{description}</Text>}
       </View>

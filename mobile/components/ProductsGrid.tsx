@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { useBuyerTheme } from "@/context/ThemeContext";
 
 interface ProductsGridProps {
   isLoading: boolean;
@@ -20,6 +21,7 @@ interface ProductsGridProps {
 }
 
 const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
+  const { theme } = useBuyerTheme();
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
     useWishlist();
 
@@ -88,12 +90,12 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
             onPress={() => router.push(`/shop/${product.shop!._id}`)}
             activeOpacity={0.7}
           >
-            <Text className="text-primary text-xs font-semibold mb-2">
+            <Text className="text-xs font-semibold mb-2" style={{ color: theme.primary }}>
               By {product.shop.name || "Platform Store"}
             </Text>
           </TouchableOpacity>
         ) : (
-          <Text className="text-primary text-xs font-semibold mb-2">By Platform Store</Text>
+          <Text className="text-xs font-semibold mb-2" style={{ color: theme.primary }}>By Platform Store</Text>
         )}
 
         <View className="flex-row items-center mb-2">
@@ -105,10 +107,11 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
         </View>
 
         <View className="flex-row items-center justify-between">
-          <Text className="text-primary font-bold text-lg">${product.price.toFixed(2)}</Text>
+          <Text className="font-bold text-lg" style={{ color: theme.primary }}>${product.price.toFixed(2)}</Text>
 
           <TouchableOpacity
-            className="bg-primary rounded-full w-8 h-8 items-center justify-center"
+            className="rounded-full w-8 h-8 items-center justify-center"
+            style={{ backgroundColor: theme.primary }}
             activeOpacity={0.7}
             onPress={() => handleAddToCart(product._id, product.name)}
             disabled={isAddingToCart}

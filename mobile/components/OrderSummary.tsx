@@ -1,4 +1,5 @@
 import { View, Text } from "react-native";
+import { useBuyerTheme } from "@/context/ThemeContext";
 
 interface OrderSummaryProps {
   subtotal: number;
@@ -8,6 +9,8 @@ interface OrderSummaryProps {
 }
 
 export default function OrderSummary({ subtotal, shipping, tax, total }: OrderSummaryProps) {
+  const { theme } = useBuyerTheme();
+
   return (
     <View className="px-6 mt-6">
       <View className="bg-surface rounded-3xl p-5">
@@ -39,7 +42,7 @@ export default function OrderSummary({ subtotal, shipping, tax, total }: OrderSu
           {/* Total */}
           <View className="flex-row justify-between items-center">
             <Text className="text-text-primary font-bold text-lg">Total</Text>
-            <Text className="text-primary font-bold text-2xl">${total.toFixed(2)}</Text>
+            <Text className="font-bold text-2xl" style={{ color: theme.primary }}>${total.toFixed(2)}</Text>
           </View>
         </View>
       </View>
