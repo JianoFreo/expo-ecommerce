@@ -2,6 +2,8 @@ import { Product } from '../models/product.model.js';
 import { Order } from '../models/order.model.js';
 import { Shop } from '../models/shop.model.js';
 import { User } from '../models/user.model.js';
+import { orderResponse, ordersResponse, productResponse, productsResponse } from '../lib/serializers.js';
+import { publishCatalogChange, publishOrderChange } from '../lib/syncEvents.js';
 
 // Fallback emails used for migrated data
 const SUPER_ADMIN_EMAIL = 'magtangob65@gmail.com'.toLowerCase();
@@ -50,13 +52,13 @@ export async function getSellerProducts(req, res) {
     const user = req.user;
 
     const shopIds = await getAccessibleShopIdsForSeller(user);
-    if (shopIds.length === 0) return res.status(200).json([]);
+    if (shopIds.length === 0) return res.status(200).json({ products: [] });
 
     const products = await Product.find({ shop: { $in: shopIds } })
       .populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } })
       .sort({ createdAt: -1 });
 
-    res.status(200).json(products);
+    res.status(200).json(productsResponse(products));
   } catch (error) {
     console.error('Error fetching seller products:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -68,7 +70,7 @@ export async function getSellerOrders(req, res) {
     const user = req.user;
 
     const shopIds = await getAccessibleShopIdsForSeller(user);
-    if (shopIds.length === 0) return res.status(200).json([]);
+    if (shopIds.length === 0) return res.status(200).json({ orders: [] });
 
     const productIds = await getShopProductIdsList(shopIds);
     const orders = await Order.find({ 'orderItems.product': { $in: productIds } })
@@ -89,7 +91,7 @@ export async function getSellerOrders(req, res) {
       .map((order) => filterOrderToSellerItems(order, productIds))
       .filter((order) => order.orderItems.length > 0);
 
-    res.status(200).json(sellerOrders);
+    res.status(200).json(ordersResponse(sellerOrders));
   } catch (error) {
     console.error('Error fetching seller orders:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -126,7 +128,7 @@ export async function getSellerOrderById(req, res) {
 
     if (!hasSellerItems) return res.status(404).json({ message: 'Order not found' });
 
-    return res.status(200).json({ order: filterOrderToSellerItems(order, productIds) });
+    return res.status(200).json(orderResponse(filterOrderToSellerItems(order, productIds)));
   } catch (error) {
     console.error('Error fetching seller order by id:', error);
     return res.status(500).json({ message: 'Internal server error' });
@@ -285,7 +287,9 @@ export async function createSellerProduct(req, res) {
       shop: shop._id,
     });
 
-    return res.status(201).json(product);
+    await product.populate({ path: 'shop', populate: { path: 'owner', select: 'name email imageUrl role' } });
+    await publishCatalogChange('created', product);
+    return res.status(201).json(productResponse(product));
   } catch (error) {
     console.error('Error creating seller product:', error);
     return res.status(500).json({ message: 'Internal server error' });
@@ -335,7 +339,9 @@ export async function updateSellerProduct(req, res) {
     }
 
     await product.save();
-    return res.status(200).json(product);
+    await product.populate({ path: 'shop', populate: { path: 'owner', select: 'name email imageUrl role' } });
+    await publishCatalogChange('updated', product);
+    return res.status(200).json(productResponse(product));
   } catch (error) {
     console.error('Error updating seller product:', error);
     return res.status(500).json({ message: 'Internal server error' });
@@ -354,6 +360,7 @@ export async function deleteSellerProduct(req, res) {
     }
 
     await Product.deleteOne({ _id: id });
+    await publishCatalogChange('deleted', product);
     return res.status(200).json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Error deleting seller product:', error);
@@ -405,15 +412,11 @@ export async function updateOrderStatus(req, res) {
     }
 
     await order.save();
-    
-    return res.status(200).json({ 
+    await publishOrderChange('updated', order);
+
+    return res.status(200).json({
       message: 'Order status updated successfully',
-      order: {
-        _id: order._id,
-        status: order.status,
-        shippedAt: order.shippedAt,
-        deliveredAt: order.deliveredAt,
-      }
+      ...orderResponse(order),
     });
   } catch (error) {
     console.error('Error updating order status:', error);

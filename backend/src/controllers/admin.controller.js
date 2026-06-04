@@ -5,6 +5,17 @@ import { User } from '../models/user.model.js';
 import { Shop } from '../models/shop.model.js';
 import { Activity } from '../models/activity.model.js';
 import { ENV } from '../config/env.js';
+import { getPlatformStoreShop } from '../lib/platformShop.js';
+import {
+    orderResponse,
+    ordersResponse,
+    productResponse,
+    productsResponse,
+    serializeShop,
+    serializeUser,
+    usersResponse,
+} from '../lib/serializers.js';
+import { publishCatalogChange, publishOrderChange } from '../lib/syncEvents.js';
 
 const SUPER_ADMIN_EMAIL = (ENV.ADMIN_EMAIL || 'magtangob65@gmail.com').toLowerCase();
 const MIGRATED_SELLER_EMAIL = 'jianofreomagtangob@gmail.com'.toLowerCase();
@@ -15,27 +26,6 @@ async function logActivity(payload) {
     } catch (error) {
         console.error('Error creating activity log:', error);
     }
-}
-
-async function getPlatformStoreShop() {
-    let shop = await Shop.findOne({ name: 'Platform Store' }).populate('owner', 'name email');
-
-    if (shop) {
-        return shop;
-    }
-
-    const adminUser = await User.findOne({ email: 'magtangob65@gmail.com' });
-    if (!adminUser) {
-      return null;
-    }
-
-    shop = await Shop.create({
-      name: 'Platform Store',
-      description: 'Default marketplace shop for existing products',
-      owner: adminUser._id,
-    });
-
-    return shop.populate('owner', 'name email');
 }
 
 async function getShopOwnerByEmail(email) {
@@ -118,7 +108,9 @@ export async function createProduct(req, res) {
             metadata: { productName: product.name, category: product.category },
         });
 
-        res.status(201).json({ message: "Product created successfully", product });
+        await product.populate({ path: 'shop', populate: { path: 'owner', select: 'name email imageUrl role' } });
+        await publishCatalogChange('created', product);
+        res.status(201).json({ message: "Product created successfully", ...productResponse(product) });
     } catch (error) {
         console.error("Error creating product:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -139,7 +131,7 @@ export async function getAllProducts(_, res) {
             ...product.toObject(),
             shop: product.shop || defaultShop || null,
         }));
-        res.status(200).json(normalizedProducts);
+        res.status(200).json(productsResponse(normalizedProducts));
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -164,7 +156,9 @@ export async function getAllShopsAdmin(req, res) {
             })
         );
 
-        res.status(200).json({ shops: shopsWithCounts });
+        res.status(200).json({
+            shops: shopsWithCounts.map((shop) => serializeShop(shop, { productCount: shop.productCount })),
+        });
     } catch (error) {
         console.error('Error fetching all shops:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -188,7 +182,7 @@ export async function updateShopAdmin(req, res) {
         await shop.save();
         await shop.populate('owner', 'name email imageUrl role');
 
-        res.status(200).json({ shop });
+        res.status(200).json({ shop: serializeShop(shop) });
     } catch (error) {
         console.error('Error updating shop:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -289,8 +283,10 @@ export async function updateProduct(req, res) {
             const uploadResults = await Promise.all(uploadPromises);
             product.images = uploadResults.map((result) => result.secure_url); // replace the old images with the new ones
         }
-        await product.save()
-        res.status(200).json(product)
+        await product.save();
+        await product.populate({ path: 'shop', populate: { path: 'owner', select: 'name email imageUrl role' } });
+        await publishCatalogChange('updated', product);
+        res.status(200).json(productResponse(product));
 
     } catch (error) {
         console.error("Error updating product:", error);
@@ -313,7 +309,7 @@ export async function getAllOrders(req, res) {
                 },
             })
             .sort({ createdAt: -1 });
-        res.status(200).json({ orders });
+        res.status(200).json(ordersResponse(orders));
 
         // SELECT 
         //     o.*,
@@ -353,7 +349,7 @@ export async function getOrderByIdAdmin(req, res) {
             return res.status(404).json({ message: "Order not found" });
         }
 
-        return res.status(200).json({ order });
+        return res.status(200).json(orderResponse(order));
     } catch (error) {
         console.error("Error fetching admin order by id:", error);
         return res.status(500).json({ message: "Internal server error" });
@@ -391,7 +387,8 @@ export async function updateOrderStatus(req, res) {
             order.deliveredAt = new Date();
         }
         await order.save();
-        res.status(200).json({ message: "Order status updated successfully", order });
+        await publishOrderChange('updated', order);
+        res.status(200).json({ message: "Order status updated successfully", ...orderResponse(order) });
 
 
     } catch (error) {
@@ -463,6 +460,7 @@ export const deleteProduct = async (req, res) => {
         }
 
         await Product.findByIdAndDelete(id);
+        await publishCatalogChange('deleted', product);
         res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
         console.error("Error deleting product:", error);
@@ -502,7 +500,7 @@ export async function getAllUsers(req, res) {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
     const users = await User.find().select('-clerkId').sort({ createdAt: -1 });
-    res.status(200).json({ users });
+    res.status(200).json(usersResponse(users));
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -576,28 +574,30 @@ export async function updateUserRole(req, res) {
         if (!userId) return res.status(400).json({ message: 'Missing userId' });
         if (!role) return res.status(400).json({ message: 'Missing role' });
 
-        const allowed = ['customer', 'seller', 'super-admin'];
+        const allowed = ['user', 'seller', 'super-admin', 'customer'];
         if (!allowed.includes(role)) return res.status(400).json({ message: 'Invalid role' });
 
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
+        const normalizedRole = role === 'customer' ? 'user' : role;
+
         // Prevent changing the platform super-admin's role accidentally
-        if ((user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL && role !== 'super-admin') {
+        if ((user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL && normalizedRole !== 'super-admin') {
             return res.status(400).json({ message: 'Cannot change the platform super-admin role' });
         }
 
-        user.role = role;
+        user.role = normalizedRole;
         await user.save();
 
         await logActivity({
             type: 'user_role_changed',
             user: req.user._id,
-            description: `${req.user.name} changed role for ${user.email} to ${role}`,
-            metadata: { targetUserId: user._id.toString(), newRole: role },
+            description: `${req.user.name} changed role for ${user.email} to ${normalizedRole}`,
+            metadata: { targetUserId: user._id.toString(), newRole: normalizedRole },
         });
 
-        res.status(200).json({ message: 'User role updated', user });
+        res.status(200).json({ message: 'User role updated', user: serializeUser(user) });
     } catch (error) {
         console.error('Error updating user role:', error);
         res.status(500).json({ message: 'Internal server error' });

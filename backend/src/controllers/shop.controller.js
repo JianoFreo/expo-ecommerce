@@ -2,6 +2,8 @@ import { Shop } from "../models/shop.model.js";
 import { Product } from "../models/product.model.js";
 import { Order } from "../models/order.model.js";
 import { Activity } from "../models/activity.model.js";
+import { productResponse, productsResponse, serializeShop, shopResponse } from "../lib/serializers.js";
+import { publishCatalogChange } from "../lib/syncEvents.js";
 
 export async function getMyShop(req, res) {
   try {
@@ -11,7 +13,7 @@ export async function getMyShop(req, res) {
     if (!shop) {
       return res.status(404).json({ message: 'You do not have a shop yet' });
     }
-    res.status(200).json({ shop });
+    res.status(200).json(shopResponse(shop));
   } catch (error) {
     console.error('Error fetching user shop:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -40,7 +42,7 @@ export async function createShop(req, res) {
       metadata: { shopName: shop.name },
     });
 
-    res.status(201).json({ shop });
+    res.status(201).json(shopResponse(shop));
   } catch (error) {
     console.error('Error creating shop:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -64,7 +66,7 @@ export async function updateShop(req, res) {
     if (isActive !== undefined) shop.isActive = Boolean(isActive);
 
     await shop.save();
-    res.status(200).json({ shop });
+    res.status(200).json(shopResponse(shop));
   } catch (error) {
     console.error('Error updating shop:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -76,7 +78,7 @@ export async function getShopById(req, res) {
     const { id } = req.params;
     const shop = await Shop.findById(id).populate('owner', 'name email imageUrl');
     if (!shop) return res.status(404).json({ message: 'Shop not found' });
-    res.status(200).json({ shop });
+    res.status(200).json(shopResponse(shop));
   } catch (error) {
     console.error('Error fetching shop:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -86,7 +88,7 @@ export async function getShopById(req, res) {
 export async function getAllShops(_, res) {
   try {
     const shops = await Shop.find({ isActive: true }).populate('owner', 'name email imageUrl').sort({ createdAt: -1 });
-    res.status(200).json({ shops });
+    res.status(200).json({ shops: shops.map((shop) => serializeShop(shop)) });
   } catch (error) {
     console.error('Error listing shops:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -99,7 +101,7 @@ export async function getShopProducts(req, res) {
     const products = await Product.find({ shop: id })
       .populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } })
       .sort({ createdAt: -1 });
-    res.status(200).json({ products });
+    res.status(200).json(productsResponse(products));
   } catch (error) {
     console.error('Error fetching shop products:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -219,7 +221,7 @@ export async function getMyShopProducts(req, res) {
       .populate({ path: 'shop', populate: { path: 'owner', select: 'name email imageUrl' } })
       .sort({ createdAt: -1 });
 
-    res.status(200).json({ products });
+    res.status(200).json(productsResponse(products));
   } catch (error) {
     console.error('Error fetching seller products:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -278,7 +280,9 @@ export async function createSellerProduct(req, res) {
       metadata: { productName: product.name, category: product.category },
     });
 
-    res.status(201).json({ message: 'Product created successfully', product });
+    await product.populate({ path: 'shop', populate: { path: 'owner', select: 'name email imageUrl role' } });
+    await publishCatalogChange('created', product);
+    res.status(201).json({ message: 'Product created successfully', ...productResponse(product) });
   } catch (error) {
     console.error('Error creating seller product:', error);
     res.status(500).json({ message: 'Internal server error' });

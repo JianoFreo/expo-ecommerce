@@ -14,7 +14,7 @@ export default function SellerOrders() {
     queryKey: ["seller-orders", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/seller/orders");
-      return res.data as Order[];
+      return (res.data?.orders || []) as Order[];
     },
     enabled: !!user?.id,
   });

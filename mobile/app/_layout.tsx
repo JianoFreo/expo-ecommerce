@@ -9,6 +9,7 @@ import { RoleProvider } from "@/context/RoleContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import AuthTokenBridge from "@/components/AuthTokenBridge";
 import GuestBanner from '@/components/GuestBanner';
+import RealtimeBridge from "@/components/RealtimeBridge";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -46,6 +47,7 @@ export default function RootLayout() {
           <ThemeProvider>
             <GuestBanner />
             <QueryClientProvider client={queryClient}>
+              <RealtimeBridge />
               <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY! || "pk_test_51TYuWiBQ1VXJ0n7TvbraK2UGzNojJ7P7cTTowroKlCCKHNsQgDPSvFF6cTVOZ0VP9W1ubgIDa19wnqpEEeHCe5zf000mxmpSHh"!}>
                 <Stack screenOptions={{ headerShown: false }} />
               </StripeProvider>

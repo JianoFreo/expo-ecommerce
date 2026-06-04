@@ -2,6 +2,8 @@ import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { Review } from "../models/review.model.js";
 import { Activity } from "../models/activity.model.js";
+import { orderResponse, ordersResponse } from "../lib/serializers.js";
+import { publishOrderChange } from "../lib/syncEvents.js";
 
 function getProductIdFromItem(item) {
     if (!item) return null;
@@ -91,7 +93,8 @@ export async function createOrder(req, res) {
             });
         }
 
-        res.status(201).json({ message: "Order created successfully", order });
+        await publishOrderChange('created', order);
+        res.status(201).json({ message: "Order created successfully", ...orderResponse(order) });
     } catch (error) {
         console.error("Error in createOrder controller:", error.message || error);
         const errorMessage = error.message || "Internal server error";
@@ -131,7 +134,7 @@ export async function getUserOrders(req, res) {
         // but it behaves differently and is 
         // used for a different purpose
 
-        res.status(200).json({ orders: ordersWithReviewStatus });
+        res.status(200).json(ordersResponse(ordersWithReviewStatus));
     } catch (error) {
         console.error("Error in getUserOrders controller:", error);
         res.status(500).json({ error: "Internal server error" });
@@ -163,8 +166,7 @@ export async function getUserOrderById(req, res) {
             return res.status(404).json({ error: "Order not found" });
         }
 
-        const orderObject = order.toObject();
-        return res.status(200).json({ order: orderObject });
+        return res.status(200).json(orderResponse(order));
     } catch (error) {
         console.error("Error in getUserOrderById controller:", error);
         res.status(500).json({ error: "Internal server error" });

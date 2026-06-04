@@ -54,7 +54,7 @@ export default function SellerProducts() {
     queryKey: ["seller-products", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/seller/products");
-      return res.data as Product[];
+      return (res.data?.products || []) as Product[];
     },
     enabled: !!user?.id,
   });

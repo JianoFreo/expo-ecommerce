@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
+import { createServer } from 'http';
 import { ENV } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { clerkMiddleware } from '@clerk/express';
@@ -20,8 +21,11 @@ import bannerRoutes from "./routes/banner.route.js";
 import shopRoutes from './routes/shop.route.js';
 import sellerRoutes from './routes/seller.route.js';
 import settingsRoutes from './routes/settings.route.js';
+import { initRealtime } from './lib/realtime.js';
 
 const app = express();
+const httpServer = createServer(app);
+initRealtime(httpServer);
 const __dirname = path.resolve();
 
 
@@ -111,8 +115,9 @@ if (ENV.NODE_ENV === "production") {
 //===============================start the server=================================
 const startServer = async () => {
   await connectDB();
-  app.listen(ENV.PORT, () => {
+  httpServer.listen(ENV.PORT, () => {
     console.log(`Server is up and running on http://localhost:${ENV.PORT}`);
+    console.log('Realtime: Socket.io enabled');
     console.log("NODE_ENV:", ENV.NODE_ENV);
   });
 };

@@ -54,7 +54,7 @@ export default function AdminProducts() {
     queryKey: ["admin-products"],
     queryFn: async () => {
       const res = await axiosInstance.get("/admin/products");
-      return res.data as Product[];
+      return (res.data?.products || []) as Product[];
     },
     enabled: !!user?.id,
   });

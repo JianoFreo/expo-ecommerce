@@ -63,7 +63,7 @@ export default function Users() {
                   onChange={(e) => changeRole(u, e.target.value)}
                   className="select select-sm"
                 >
-                  <option value="customer">Customer</option>
+                  <option value="user">Customer</option>
                   <option value="seller">Seller</option>
                   <option value="super-admin">Super-admin</option>
                 </select>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "../shared";
+import { productApi } from "../lib/api";
 import type { Product } from "../shared/types";
 
 type ProductForm = {
@@ -37,8 +37,8 @@ export default function Products() {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("/products");
-      setProducts(Array.isArray(res.data) ? res.data : res.data?.products || []);
+      const res = await productApi.getAll();
+      setProducts(res?.products || []);
     } catch (error) {
       setProducts([]);
     } finally {
@@ -113,9 +113,9 @@ export default function Products() {
       });
 
       if (editing) {
-        await axios.put(`/products/${editing.id || editing._id}`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+        await productApi.update({ id: editing._id, formData: fd });
       } else {
-        await axios.post("/products", fd, { headers: { "Content-Type": "multipart/form-data" } });
+        await productApi.create(fd);
       }
 
       setEditing(null);
@@ -130,13 +130,13 @@ export default function Products() {
   };
 
   const remove = async (product: Product) => {
-    const id = product.id || product._id;
+    const id = product._id;
     if (!id) return;
     if (!confirm("Delete this product?")) return;
 
     try {
-      await axios.delete(`/products/${id}`);
-      setProducts((current) => current.filter((item) => (item.id || item._id) !== id));
+      await productApi.delete(id);
+      setProducts((current) => current.filter((item) => item._id !== id));
     } catch (error) {
       alert("Could not delete product");
     }
@@ -239,7 +239,7 @@ export default function Products() {
         ) : (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => {
-              const id = product.id || product._id;
+              const id = product._id;
               const firstImage = product.images?.[0];
               return (
                 <article key={id} className="overflow-hidden rounded-[24px] border border-white/10 bg-[#111318] shadow-sm">

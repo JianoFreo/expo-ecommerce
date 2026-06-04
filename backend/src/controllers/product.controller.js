@@ -1,31 +1,11 @@
 import { Product } from "../models/product.model.js";
-import { Shop } from "../models/shop.model.js";
-import { User } from "../models/user.model.js";
-
-async function getPlatformStoreShop() {
-    let shop = await Shop.findOne({ name: 'Platform Store' }).populate('owner', 'name email');
-
-    if (shop) {
-        return shop;
-    }
-
-    const adminUser = await User.findOne({ email: 'magtangob65@gmail.com' });
-    if (!adminUser) {
-        return null;
-    }
-
-    shop = await Shop.create({
-        name: 'Platform Store',
-        description: 'Default marketplace shop for existing products',
-        owner: adminUser._id,
-    });
-    return shop.populate('owner', 'name email');
-}
+import { getPlatformStoreShop } from "../lib/platformShop.js";
+import { productResponse, productsResponse } from "../lib/serializers.js";
 
 export async function getProductById(req, res) {
     try {
         const { id } = req.params;
-        const product = await Product.findById(id).populate({ path: 'shop', populate: { path: 'owner', select: 'name email' } });
+        const product = await Product.findById(id).populate({ path: 'shop', populate: { path: 'owner', select: 'name email imageUrl role' } });
         if (!product) {
             return res.status(404).json({ error: "Product not found" });
         }
@@ -40,7 +20,7 @@ export async function getProductById(req, res) {
             };
         }
 
-        res.status(200).json(normalizedProduct);
+        res.status(200).json(productResponse(normalizedProduct));
 
     } catch (error) {
         console.error("Error in getProductById controller:", error);

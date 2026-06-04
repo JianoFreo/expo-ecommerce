@@ -5,6 +5,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@expo-ecommerce/contract": [
+        "../packages/contract/src/index.ts"
       ]
     }
   },
