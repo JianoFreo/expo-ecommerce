@@ -5,6 +5,7 @@ export default function Banner() {
   const [banners, setBanners] = useState<any[]>([]);
   const [title, setTitle] = useState("");
   const [image, setImage] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   const fetch = async () => {
     try {
@@ -19,9 +20,17 @@ export default function Banner() {
 
   const create = async () => {
     try {
-      await axios.post("/admin/banners", { title, image });
+      if (file) {
+        const fd = new FormData();
+        fd.append("title", title);
+        fd.append("image", file, (file as File).name);
+        await axios.post("/admin/banners", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      } else {
+        await axios.post("/admin/banners", { title, image });
+      }
       setTitle("");
       setImage("");
+      setFile(null);
       fetch();
     } catch (e) {}
   };

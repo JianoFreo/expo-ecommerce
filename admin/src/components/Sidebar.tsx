@@ -17,6 +17,7 @@ export default function Sidebar() {
         <LinkItem to="/users">Users</LinkItem>
         <LinkItem to="/shops">Shops</LinkItem>
         <LinkItem to="/banner">Banner</LinkItem>
+        <LinkItem to="/seller">Seller Dashboard</LinkItem>
       </nav>
     </aside>
   );

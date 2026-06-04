@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import OrderDetail from "./pages/OrderDetail";
 import Shops from "./pages/Shops";
 import Banner from "./pages/Banner";
+import Seller from "./pages/Seller";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 
@@ -74,6 +75,14 @@ export default function App() {
               element={
                 <RequireAuth>
                   <Banner />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/seller"
+              element={
+                <RequireAuth>
+                  <Seller />
                 </RequireAuth>
               }
             />

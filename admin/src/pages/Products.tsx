@@ -6,7 +6,7 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: "", price: "", description: "" });
+  const [form, setForm] = useState<{ name: string; price: string; description: string; images: Array<any> }>({ name: "", price: "", description: "", images: [] });
 
   const fetch = async () => {
     setLoading(true);
@@ -26,7 +26,7 @@ export default function Products() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", price: "", description: "" });
+    setForm({ name: "", price: "", description: "", images: [] });
   };
 
   const openEdit = (p: Product) => {
@@ -36,16 +36,26 @@ export default function Products() {
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    const payload = { name: form.name, price: Number(form.price), description: form.description } as Partial<Product>;
     try {
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("price", String(Number(form.price)));
+      fd.append("description", form.description);
+      // append files if provided
+      form.images?.forEach((img: any, idx: number) => {
+        if (img.file) {
+          fd.append("images", img.file, img.name || img.file.name);
+        }
+      });
+
       if (editing) {
-        await axios.put(`/products/${editing.id}`, payload);
+        await axios.put(`/products/${editing.id}`, fd, { headers: { "Content-Type": "multipart/form-data" } });
       } else {
-        await axios.post(`/products`, payload);
+        await axios.post(`/products`, fd, { headers: { "Content-Type": "multipart/form-data" } });
       }
       await fetch();
       setEditing(null);
-      setForm({ name: "", price: "", description: "" });
+      setForm({ name: "", price: "", description: "", images: [] });
     } catch (err) {
       console.error(err);
     }
@@ -59,6 +69,13 @@ export default function Products() {
     } catch (e) {
       // ignore
     }
+  };
+
+  const onFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const arr = Array.from(files).slice(0, 3).map((f) => ({ file: f, preview: URL.createObjectURL(f), name: f.name, type: f.type }));
+    setForm((s) => ({ ...s, images: [...(s.images || []).slice(0, 3 - arr.length), ...arr] }));
   };
 
   return (
@@ -79,9 +96,18 @@ export default function Products() {
           <input value={form.description} onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))} placeholder="Description" className="input input-bordered w-full" />
         </div>
         <div className="mt-3">
+          <label className="block mb-2">Images (max 3)</label>
+          <input type="file" accept="image/*" multiple onChange={onFilesChange} />
+          <div className="flex gap-2 mt-2">
+            {(form.images || []).map((img: any, idx: number) => (
+              <img key={idx} src={img.preview || img.uri} alt={img.name || idx} className="w-20 h-20 object-cover rounded" />
+            ))}
+          </div>
+        </div>
+        <div className="mt-3">
           <button className="btn btn-success" type="submit">{editing ? "Save" : "Create"}</button>
           {editing && (
-            <button type="button" className="btn ml-2" onClick={() => { setEditing(null); setForm({ name: "", price: "", description: "" }); }}>
+            <button type="button" className="btn ml-2" onClick={() => { setEditing(null); setForm({ name: "", price: "", description: "", images: [] }); }}>
               Cancel
             </button>
           )}
