@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "../shared";
 import type { Order } from "../shared/types";
 
@@ -7,22 +8,24 @@ export default function Orders() {
 
   useEffect(() => {
     axios
-      .get("/orders")
-      .then((res) => setOrders(res.data || []))
+      .get("/admin/orders")
+      .then((res) => setOrders(res.data?.orders || []))
       .catch(() => {});
   }, []);
 
   return (
     <div>
       <h1 className="text-2xl font-bold">Orders</h1>
-      <ul className="mt-4 space-y-2">
+      <div className="mt-4 space-y-2">
         {orders.map((o) => (
-          <li key={o.id} className="p-3 border rounded">
-            <div className="font-semibold">Order {o.id}</div>
-            <div className="text-sm">Total: ${o.total}</div>
-          </li>
+          <Link key={o.id} to={`/orders/${o.id}`} className="block p-3 border rounded hover:bg-base-200">
+            <div className="flex justify-between items-center">
+              <div className="font-semibold">#{o.id}</div>
+              <div className="text-sm">Total: ${o.total.toFixed(2)}</div>
+            </div>
+          </Link>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

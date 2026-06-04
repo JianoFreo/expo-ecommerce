@@ -6,6 +6,9 @@ import Products from "./pages/Products";
 import Users from "./pages/Users";
 import Orders from "./pages/Orders";
 import Login from "./pages/Login";
+import OrderDetail from "./pages/OrderDetail";
+import Shops from "./pages/Shops";
+import Banner from "./pages/Banner";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 
@@ -47,6 +50,30 @@ export default function App() {
               element={
                 <RequireAuth>
                   <Orders />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <RequireAuth>
+                  <OrderDetail />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/shops"
+              element={
+                <RequireAuth>
+                  <Shops />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/banner"
+              element={
+                <RequireAuth>
+                  <Banner />
                 </RequireAuth>
               }
             />
