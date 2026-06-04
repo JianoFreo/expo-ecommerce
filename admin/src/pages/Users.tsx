@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "../shared";
+import { userManagementApi } from "../lib/api";
 import type { User } from "../shared/types";
 
 export default function Users() {
@@ -9,8 +9,8 @@ export default function Users() {
   const fetch = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("/admin/users");
-      setUsers(res.data?.users || []);
+      const res = await userManagementApi.getAllUsers();
+      setUsers(res?.users || []);
     } catch (e) {
       // ignore
     } finally {
@@ -24,8 +24,19 @@ export default function Users() {
 
   const toggleBan = async (u: any) => {
     try {
-      const endpoint = u.isBanned ? `/admin/users/${u._id}/unban` : `/admin/users/${u._id}/ban`;
-      await axios.patch(endpoint);
+      if (u.isBanned) {
+        await userManagementApi.unbanUser(u._id);
+      } else {
+        await userManagementApi.banUser({ userId: u._id });
+      }
+      await fetch();
+    } catch (e) {}
+  };
+
+  const changeRole = async (u: any, role: string) => {
+    try {
+      if (!u._id) return;
+      await userManagementApi.setUserRole({ userId: u._id, role });
       await fetch();
     } catch (e) {}
   };
@@ -44,9 +55,18 @@ export default function Users() {
             <div key={u._id || u.id} className="p-3 border rounded flex items-center justify-between">
               <div>
                 <div className="font-semibold">{u.name || u.email}</div>
-                <div className="text-sm text-muted">{u.role}</div>
+                <div className="text-sm text-muted">{u.email}</div>
               </div>
-              <div>
+              <div className="flex items-center gap-3">
+                <select
+                  value={u.role || 'customer'}
+                  onChange={(e) => changeRole(u, e.target.value)}
+                  className="select select-sm"
+                >
+                  <option value="customer">Customer</option>
+                  <option value="seller">Seller</option>
+                  <option value="super-admin">Super-admin</option>
+                </select>
                 <button className={`btn btn-sm ${u.isBanned ? "btn-success" : "btn-error"}`} onClick={() => toggleBan(u)}>
                   {u.isBanned ? "Unban" : "Ban"}
                 </button>

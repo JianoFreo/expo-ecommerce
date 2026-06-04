@@ -145,6 +145,10 @@ export const userManagementApi = {
         const { data } = await axiosInstance.patch(`/admin/users/${userId}/unban`);
         return data;
     },
+    setUserRole: async ({ userId, role }) => {
+        const { data } = await axiosInstance.patch(`/admin/users/${userId}/role`, { role });
+        return data;
+    },
 };
 
 export const settingsApi = {

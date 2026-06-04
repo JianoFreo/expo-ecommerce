@@ -18,6 +18,7 @@ import {
     migrateProductsToDefaultShop,
     getAllUsers,
     banUser,
+    updateUserRole,
     unbanUser,
     getRecentActivities,
     getAllShopsAdmin,
@@ -64,5 +65,6 @@ router.put("/banner", protectRoute, superAdminOnly, upsertHomeBanner);
 router.get("/users", protectRoute, superAdminOnly, getAllUsers);
 router.patch("/users/:userId/ban", protectRoute, superAdminOnly, banUser);
 router.patch("/users/:userId/unban", protectRoute, superAdminOnly, unbanUser);
+router.patch("/users/:userId/role", protectRoute, superAdminOnly, updateUserRole);
 
 export default router;

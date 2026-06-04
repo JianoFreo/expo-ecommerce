@@ -566,6 +566,44 @@ export async function unbanUser(req, res) {
   }
 }
 
+export async function updateUserRole(req, res) {
+    try {
+        if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+        const { userId } = req.params;
+        const { role } = req.body;
+
+        if (!userId) return res.status(400).json({ message: 'Missing userId' });
+        if (!role) return res.status(400).json({ message: 'Missing role' });
+
+        const allowed = ['customer', 'seller', 'super-admin'];
+        if (!allowed.includes(role)) return res.status(400).json({ message: 'Invalid role' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Prevent changing the platform super-admin's role accidentally
+        if ((user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL && role !== 'super-admin') {
+            return res.status(400).json({ message: 'Cannot change the platform super-admin role' });
+        }
+
+        user.role = role;
+        await user.save();
+
+        await logActivity({
+            type: 'user_role_changed',
+            user: req.user._id,
+            description: `${req.user.name} changed role for ${user.email} to ${role}`,
+            metadata: { targetUserId: user._id.toString(), newRole: role },
+        });
+
+        res.status(200).json({ message: 'User role updated', user });
+    } catch (error) {
+        console.error('Error updating user role:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 export async function getRecentActivities(req, res) {
     try {
         if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
