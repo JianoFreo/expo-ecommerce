@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "../../../shared";
-import type { Order } from "../../../shared";
+import axios from "../shared";
+import type { Order } from "../shared/types";
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);

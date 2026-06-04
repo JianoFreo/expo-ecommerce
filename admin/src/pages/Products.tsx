@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "../../../shared";
-import type { Product } from "../../../shared";
+import axios from "../shared";
+import type { Product } from "../shared/types";
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);

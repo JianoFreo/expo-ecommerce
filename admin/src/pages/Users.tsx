@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "../../../shared";
-import type { User } from "../../../shared";
+import axios from "../shared";
+import type { User } from "../shared/types";
 
 export default function Users() {
   const [users, setUsers] = useState<User[]>([]);
