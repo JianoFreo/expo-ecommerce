@@ -1,4 +1,5 @@
 import { Setting } from '../models/setting.model.js';
+import { Activity } from '../models/activity.model.js';
 
 export async function getSettings(req, res) {
   try {
@@ -23,6 +24,16 @@ export async function setGuestAccess(req, res) {
       { value: enabled },
       { upsert: true, new: true }
     );
+
+    try {
+      await Activity.create({
+        type: 'settings_update',
+        description: `Guest browsing ${enabled ? 'enabled' : 'disabled'}`,
+        metadata: { guestEnabled: Boolean(enabled) },
+      });
+    } catch (err) {
+      console.error('Failed to write activity log for settings update', err);
+    }
 
     res.status(200).json({ settings: { guestEnabled: Boolean(updated.value) } });
   } catch (error) {

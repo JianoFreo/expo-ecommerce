@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { settingsApi } from "../lib/api";
+import { settingsApi, activityApi } from "../lib/api";
 
 export default function Settings() {
   const [loading, setLoading] = useState(false);
@@ -23,16 +23,35 @@ export default function Settings() {
 
   const toggleGuest = async () => {
     if (guestEnabled === null) return;
+    // confirmation modal
+    const ok = window.confirm(
+      `Are you sure you want to ${guestEnabled ? 'disable' : 'enable'} guest browsing?`
+    );
+    if (!ok) return;
     setLoading(true);
     try {
       await settingsApi.setGuestAccess(!guestEnabled);
       setGuestEnabled(!guestEnabled);
+      // refresh recent activities after change
+      await fetchActivities();
     } catch (e) {
       // ignore
     } finally {
       setLoading(false);
     }
   };
+
+  const [activities, setActivities] = useState<any[]>([]);
+  const fetchActivities = async () => {
+    try {
+      const res = await activityApi.getRecent();
+      setActivities(res?.activities || []);
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchActivities();
+  }, []);
 
   return (
     <div>
@@ -55,6 +74,21 @@ export default function Settings() {
             </div>
           </div>
         )}
+      </div>
+      <div className="mt-6">
+        <h2 className="text-lg font-semibold">Recent Activity</h2>
+        <div className="mt-2 space-y-2">
+          {activities.length === 0 ? (
+            <div className="text-sm text-muted">No recent activity</div>
+          ) : (
+            activities.map((a) => (
+              <div key={a._id} className="p-2 border rounded bg-[#0b0d10]">
+                <div className="text-sm">{a.description}</div>
+                <div className="text-xs text-muted">{new Date(a.createdAt).toLocaleString()}</div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
