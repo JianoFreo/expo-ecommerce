@@ -2,3 +2,9 @@
 @plugin "daisyui" {
   themes: forest;
 }
+
+/* Admin UI tweaks for denser tables and badges */
+.card { border-radius: 8px; }
+.btn { border-radius: 8px; }
+.table-tight td, .table-tight th { padding: 8px 12px; }
+.badge-status { padding: 4px 8px; border-radius: 9999px; font-weight: 600; }

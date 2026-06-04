@@ -10,6 +10,7 @@ import OrderDetail from "./pages/OrderDetail";
 import Shops from "./pages/Shops";
 import Banner from "./pages/Banner";
 import Seller from "./pages/Seller";
+import Reviews from "./pages/Reviews";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 
@@ -83,6 +84,14 @@ export default function App() {
               element={
                 <RequireAuth>
                   <Seller />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/reviews"
+              element={
+                <RequireAuth>
+                  <Reviews />
                 </RequireAuth>
               }
             />
