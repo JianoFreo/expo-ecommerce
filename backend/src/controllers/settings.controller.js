@@ -26,10 +26,18 @@ export async function setGuestAccess(req, res) {
     );
 
     try {
+      const actorName = req.user?.name || 'Admin';
+      const actorEmail = req.user?.email || null;
       await Activity.create({
         type: 'settings_update',
-        description: `Guest browsing ${enabled ? 'enabled' : 'disabled'}`,
-        metadata: { guestEnabled: Boolean(enabled) },
+        user: req.user?._id ?? null,
+        description: `${actorName} ${enabled ? 'enabled' : 'disabled'} guest browsing`,
+        metadata: {
+          guestEnabled: Boolean(enabled),
+          settingKey: 'guestEnabled',
+          actorName,
+          actorEmail,
+        },
       });
     } catch (err) {
       console.error('Failed to write activity log for settings update', err);

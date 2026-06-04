@@ -608,15 +608,39 @@ export async function getRecentActivities(req, res) {
     try {
         if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
 
-        const activities = await Activity.find()
-            .populate('user', 'name email imageUrl')
-            .populate('shop', 'name owner')
-            .populate('product', 'name images')
-            .populate('order', 'totalPrice status createdAt')
-            .sort({ createdAt: -1 })
-            .limit(20);
+        const { type, search, page = '1', limit = '10' } = req.query;
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
 
-        res.status(200).json({ activities });
+        const filter = {};
+        if (typeof type === 'string' && type.trim()) {
+            filter.type = type.trim();
+        }
+        if (typeof search === 'string' && search.trim()) {
+            filter.description = { $regex: search.trim(), $options: 'i' };
+        }
+
+        const [activities, total] = await Promise.all([
+            Activity.find(filter)
+                .populate('user', 'name email imageUrl')
+                .populate('shop', 'name owner')
+                .populate('product', 'name images')
+                .populate('order', 'totalPrice status createdAt')
+                .sort({ createdAt: -1 })
+                .skip((pageNum - 1) * limitNum)
+                .limit(limitNum),
+            Activity.countDocuments(filter),
+        ]);
+
+        res.status(200).json({
+            activities,
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                totalPages: Math.max(1, Math.ceil(total / limitNum)),
+            },
+        });
     } catch (error) {
         console.error('Error fetching recent activities:', error);
         res.status(500).json({ message: 'Internal server error' });

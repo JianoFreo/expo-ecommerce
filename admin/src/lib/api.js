@@ -42,8 +42,10 @@ export const statsApi = {
 };
 
 export const activityApi = {
-    getRecent: async () => {
-        const { data } = await axiosInstance.get("/admin/activities");
+    getRecent: async ({ type, search, page, limit } = {}) => {
+        const { data } = await axiosInstance.get("/admin/activities", {
+            params: { type, search, page, limit },
+        });
         return data;
     },
 };
