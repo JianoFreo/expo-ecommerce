@@ -1,30 +1,17 @@
 import React, { useCallback, useEffect, useState } from "react";
 import ConfirmModal from "../components/ConfirmModal";
-import { settingsApi, activityApi } from "../lib/api";
-import axios from "../shared";
+import { settingsApi, activityApi, userApi } from "../lib/api";
+import type { ActivityLogEntry } from "../shared/types";
 
 const SETTINGS_ACTIVITY_TYPE = "settings_update";
 const PAGE_SIZE = 10;
-
-type ActivityEntry = {
-  _id: string;
-  description: string;
-  createdAt: string;
-  user?: { name?: string; email?: string } | null;
-  metadata?: {
-    actorName?: string;
-    actorEmail?: string;
-    guestEnabled?: boolean;
-    settingKey?: string;
-  };
-};
 
 type ProfileUser = {
   name?: string;
   email?: string;
 };
 
-function getActivityActor(activity: ActivityEntry) {
+function getActivityActor(activity: ActivityLogEntry) {
   if (activity.user?.name || activity.user?.email) {
     return {
       name: activity.user.name || "Unknown",
@@ -65,8 +52,8 @@ export default function Settings() {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("/user/profile");
-      const user = res.data?.user;
+      const res = await userApi.profile();
+      const user = res.user;
       if (user) {
         setCurrentUser({ name: user.name, email: user.email });
       }
@@ -78,7 +65,7 @@ export default function Settings() {
   const fetchActivities = useCallback(async () => {
     setActivityLoading(true);
     try {
-      const res = await activityApi.getRecent({
+      const res = await activityApi.list({
         type: SETTINGS_ACTIVITY_TYPE,
         search: search || undefined,
         page,

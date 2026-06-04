@@ -140,6 +140,76 @@ export interface ApiMessageResponse {
   message: string;
 }
 
+/** Admin dashboard stats (flat envelope from GET /admin/stats) */
+export interface DashboardStats {
+  totalOrders: number;
+  totalRevenue: number;
+  totalCustomers: number;
+  totalProducts: number;
+}
+
+export interface HomeBanner {
+  _id?: string;
+  key: string;
+  product: Product | string | null;
+  badgeText: string;
+  ctaText: string;
+  isActive: boolean;
+}
+
+export interface BannerResponse {
+  banner: HomeBanner;
+}
+
+export interface Review {
+  _id: string;
+  productId: string;
+  userId?: UserSummary | string;
+  rating: number;
+  comment: string;
+  images?: string[];
+  createdAt?: string;
+}
+
+export interface ReviewsResponse {
+  reviews: Review[];
+}
+
+export interface SettingsMap {
+  guestEnabled: boolean;
+}
+
+export interface SettingsResponse {
+  settings: SettingsMap;
+}
+
+export interface ActivityLogEntry {
+  _id: string;
+  type: string;
+  description: string;
+  createdAt: string;
+  user?: UserSummary | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ActivitiesResponse {
+  activities: ActivityLogEntry[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface OrderStatusUpdateResponse extends ApiMessageResponse {
+  order: Order;
+}
+
+export interface UserMutationResponse extends ApiMessageResponse {
+  user: User;
+}
+
 /** Realtime payloads (Socket.io / Inngest) */
 export type RealtimeEntity = "product" | "order";
 

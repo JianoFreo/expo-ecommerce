@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import App from "./App";
+import AppProviders from "./providers/AppProviders";
 import "./index.css";
 import { setTokenGetter } from "./shared";
 
@@ -41,7 +42,9 @@ function Root() {
     <ClerkProvider publishableKey={publishableKey}>
       <AuthInitializer />
       <BrowserRouter>
-        <App />
+        <AppProviders>
+          <App />
+        </AppProviders>
       </BrowserRouter>
     </ClerkProvider>
   );

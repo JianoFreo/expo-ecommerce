@@ -1,5 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { productApi } from "../lib/api";
+import React, { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { productApi, unwrapProducts } from "../lib/api";
+import { formatMoney } from "../lib/format";
+import { buildCategoryList, filterProducts } from "../lib/productFilters";
+import { queryKeys } from "../lib/queryKeys";
 import type { Product } from "../shared/types";
 
 type ProductForm = {
@@ -20,52 +24,53 @@ const emptyForm: ProductForm = {
   images: [],
 };
 
-function money(value: number | string | undefined) {
-  const numeric = typeof value === "number" ? value : Number(value || 0);
-  return `$${numeric.toFixed(2)}`;
-}
-
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const loadProducts = async () => {
-    setLoading(true);
-    try {
-      const res = await productApi.getAll();
-      setProducts(res?.products || []);
-    } catch (error) {
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: queryKeys.productsAdmin,
+    queryFn: async () => unwrapProducts(await productApi.listAdmin()),
+  });
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("price", form.price);
+      fd.append("description", form.description);
+      fd.append("stock", form.stock);
+      fd.append("category", form.category);
+      form.images.forEach((image) => {
+        if (image.file) fd.append("images", image.file, image.name || image.file.name);
+      });
+      if (editing) return productApi.update(editing._id, fd);
+      return productApi.create(fd);
+    },
+    onSuccess: () => {
+      setEditing(null);
+      setForm(emptyForm);
+      queryClient.invalidateQueries({ queryKey: queryKeys.productsAdmin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.productsCatalog });
+    },
+  });
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    products.forEach((product) => {
-      if (product.category) set.add(product.category);
-    });
-    return ["All", ...Array.from(set)];
-  }, [products]);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => productApi.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.productsAdmin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.productsCatalog });
+    },
+  });
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchesCategory = activeCategory === "All" || product.category === activeCategory;
-      const haystack = `${product.name} ${product.description || ""} ${product.category || ""}`.toLowerCase();
-      const matchesQuery = !query.trim() || haystack.includes(query.toLowerCase());
-      return matchesCategory && matchesQuery;
-    });
-  }, [products, query, activeCategory]);
+  const categories = useMemo(() => buildCategoryList(products), [products]);
+  const filteredProducts = useMemo(
+    () => filterProducts(products, { query, category: activeCategory }),
+    [products, query, activeCategory],
+  );
 
   const openCreate = () => {
     setEditing(null);
@@ -80,66 +85,29 @@ export default function Products() {
       description: product.description || "",
       stock: String(product.stock ?? 1),
       category: product.category || "General",
-      images: (product.images || []).slice(0, 3).map((image, index) => ({ preview: image, name: `${product.name}-${index + 1}` })),
+      images: (product.images || []).slice(0, 3).map((image, index) => ({
+        preview: image,
+        name: `${product.name}-${index + 1}`,
+      })),
     });
   };
 
   const onFilesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []).slice(0, 3);
     if (!files.length) return;
-
-    const nextImages = files.map((file) => ({ file, preview: URL.createObjectURL(file), name: file.name }));
     setForm((current) => ({
       ...current,
-      images: nextImages,
+      images: files.map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+        name: file.name,
+      })),
     }));
   };
 
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setSaving(true);
-
-    try {
-      const fd = new FormData();
-      fd.append("name", form.name);
-      fd.append("price", form.price);
-      fd.append("description", form.description);
-      fd.append("stock", form.stock);
-      fd.append("category", form.category);
-      form.images.forEach((image) => {
-        if (image.file) {
-          fd.append("images", image.file, image.name || image.file.name);
-        }
-      });
-
-      if (editing) {
-        await productApi.update({ id: editing._id, formData: fd });
-      } else {
-        await productApi.create(fd);
-      }
-
-      setEditing(null);
-      setForm(emptyForm);
-      await loadProducts();
-    } catch (error) {
-      console.error(error);
-      alert("Could not save product");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const remove = async (product: Product) => {
-    const id = product._id;
-    if (!id) return;
     if (!confirm("Delete this product?")) return;
-
-    try {
-      await productApi.delete(id);
-      setProducts((current) => current.filter((item) => item._id !== id));
-    } catch (error) {
-      alert("Could not delete product");
-    }
+    deleteMutation.mutate(product._id);
   };
 
   return (
@@ -149,9 +117,9 @@ export default function Products() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/80">Catalog</p>
             <h1 className="mt-2 text-3xl font-black leading-tight">Products</h1>
-            <p className="mt-2 max-w-xl text-sm text-white/85">Manage inventory, prices, and product images from a cleaner mobile-style interface.</p>
+            <p className="mt-2 max-w-xl text-sm text-white/85">Admin CRUD via /admin/products — synced over Socket.io.</p>
           </div>
-          <button onClick={openCreate} className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-black/10 active:scale-[0.98]">
+          <button type="button" onClick={openCreate} className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-900">
             New Product
           </button>
         </div>
@@ -162,112 +130,64 @@ export default function Products() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search products"
-          className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-orange-400"
+          className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none focus:border-orange-400"
         />
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-          {categories.map((category) => {
-            const active = activeCategory === category;
-            return (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${active ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"}`}
-              >
-                {category}
-              </button>
-            );
-          })}
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => setActiveCategory(category)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
+                activeCategory === category ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
         </div>
       </section>
 
-      <form onSubmit={submit} className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">{editing ? "Edit Product" : "Create Product"}</h2>
-            <p className="text-sm text-slate-500">Add one to three images just like the mobile product form.</p>
-          </div>
-          {editing ? (
-            <button type="button" onClick={openCreate} className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
-              Reset
-            </button>
-          ) : null}
-        </div>
-
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          saveMutation.mutate();
+        }}
+        className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm"
+      >
+        <h2 className="text-lg font-bold text-slate-900">{editing ? "Edit Product" : "Create Product"}</h2>
         <div className="mt-5 grid gap-3 md:grid-cols-2">
-          <input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="Product name" className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-orange-400" />
-          <input value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} placeholder="Price" className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-orange-400" />
-          <input value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} placeholder="Stock" className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-orange-400" />
-          <input value={form.category} onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))} placeholder="Category" className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-orange-400" />
+          <input value={form.name} onChange={(e) => setForm((c) => ({ ...c, name: e.target.value }))} placeholder="Product name" className="input" />
+          <input value={form.price} onChange={(e) => setForm((c) => ({ ...c, price: e.target.value }))} placeholder="Price" className="input" />
+          <input value={form.stock} onChange={(e) => setForm((c) => ({ ...c, stock: e.target.value }))} placeholder="Stock" className="input" />
+          <input value={form.category} onChange={(e) => setForm((c) => ({ ...c, category: e.target.value }))} placeholder="Category" className="input" />
         </div>
-
-        <textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Description" className="mt-3 min-h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 outline-none focus:border-orange-400" />
-
-        <div className="mt-4">
-          <label className="text-sm font-semibold text-slate-700">Images</label>
-          <input type="file" accept="image/*" multiple onChange={onFilesChange} className="mt-2 block w-full text-sm" />
-          <div className="mt-3 flex gap-3 overflow-x-auto">
-            {form.images.map((image, index) => (
-              <img key={`${image.preview}-${index}`} src={image.preview} alt={image.name} className="h-24 w-24 rounded-2xl object-cover" />
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-5 flex gap-3">
-          <button type="submit" disabled={saving} className="rounded-full bg-slate-900 px-5 py-3 text-sm font-bold text-white disabled:opacity-60">
-            {saving ? "Saving..." : editing ? "Update Product" : "Create Product"}
-          </button>
-          {editing ? (
-            <button type="button" onClick={openCreate} className="rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700">
-              Cancel
-            </button>
-          ) : null}
-        </div>
+        <textarea value={form.description} onChange={(e) => setForm((c) => ({ ...c, description: e.target.value }))} placeholder="Description" className="textarea mt-3 w-full" />
+        <input type="file" accept="image/*" multiple onChange={onFilesChange} className="mt-4 block w-full text-sm" />
+        <button type="submit" disabled={saveMutation.isPending} className="btn btn-primary mt-4">
+          {saveMutation.isPending ? "Saving…" : editing ? "Update" : "Create"}
+        </button>
       </form>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-lg font-bold text-slate-900">Inventory</h2>
-          <span className="text-sm text-slate-500">{filteredProducts.length} items</span>
-        </div>
-
-        {loading ? (
-          <div className="rounded-[24px] border border-black/5 bg-white p-6 text-center text-slate-500 shadow-sm">Loading products...</div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="rounded-[24px] border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500 shadow-sm">
-            No products found.
-          </div>
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        {isLoading ? (
+          <div className="col-span-full text-center text-slate-500">Loading…</div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-            {filteredProducts.map((product) => {
-              const id = product._id;
-              const firstImage = product.images?.[0];
-              return (
-                <article key={id} className="overflow-hidden rounded-[24px] border border-white/10 bg-[#111318] shadow-sm">
-                  <div className="aspect-[1/1] bg-white/5">
-                    {firstImage ? <img src={firstImage} alt={product.name} className="h-full w-full object-cover" /> : null}
-                  </div>
-                  <div className="p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3 className="truncate text-sm font-bold text-white">{product.name}</h3>
-                        <p className="mt-1 text-xs text-white/60">{product.category || "General"}</p>
-                      </div>
-                      <div className="rounded-full bg-emerald-500/15 px-2 py-1 text-xs font-bold text-emerald-300">{money(product.price)}</div>
-                    </div>
-                    <p className="mt-2 line-clamp-2 text-xs text-white/60">{product.description || "No description provided."}</p>
-                    <div className="mt-3 flex gap-2">
-                      <button type="button" onClick={() => openEdit(product)} className="rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-900">
-                        Edit
-                      </button>
-                      <button type="button" onClick={() => remove(product)} className="rounded-full bg-rose-500/15 px-3 py-2 text-xs font-semibold text-rose-300">
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          filteredProducts.map((product) => (
+            <article key={product._id} className="overflow-hidden rounded-[24px] border border-white/10 bg-[#111318]">
+              {product.images?.[0] ? (
+                <img src={product.images[0]} alt={product.name} className="aspect-square w-full object-cover" />
+              ) : null}
+              <div className="p-3">
+                <h3 className="truncate text-sm font-bold text-white">{product.name}</h3>
+                <p className="text-xs text-emerald-300">{formatMoney(product.price)}</p>
+                <div className="mt-2 flex gap-2">
+                  <button type="button" className="btn btn-xs" onClick={() => openEdit(product)}>Edit</button>
+                  <button type="button" className="btn btn-xs btn-error" onClick={() => remove(product)}>Delete</button>
+                </div>
+              </div>
+            </article>
+          ))
         )}
       </section>
     </div>

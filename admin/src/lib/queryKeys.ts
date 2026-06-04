@@ -1,0 +1,17 @@
+export const queryKeys = {
+  profile: ["profile"] as const,
+  productsAdmin: ["products", "admin"] as const,
+  productsCatalog: ["products", "catalog"] as const,
+  product: (id: string) => ["products", id] as const,
+  orders: ["orders"] as const,
+  order: (id: string) => ["orders", id] as const,
+  users: ["users"] as const,
+  shops: ["shops", "admin"] as const,
+  stats: ["stats", "dashboard"] as const,
+  banner: ["banner", "home"] as const,
+  reviews: (productId: string) => ["reviews", productId] as const,
+  settings: ["settings"] as const,
+  activities: (params: Record<string, unknown>) => ["activities", params] as const,
+  sellerProducts: ["seller", "products"] as const,
+  sellerStats: ["seller", "stats"] as const,
+};

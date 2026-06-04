@@ -1,45 +1,28 @@
-import React, { useEffect, useState } from "react";
-import { userManagementApi } from "../lib/api";
-import type { User } from "../shared/types";
+import React from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { userApi, unwrapUsers } from "../lib/api";
+import { queryKeys } from "../lib/queryKeys";
+import type { User, UserRole } from "../shared/types";
 
 export default function Users() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetch = async () => {
-    setLoading(true);
-    try {
-      const res = await userManagementApi.getAllUsers();
-      setUsers(res?.users || []);
-    } catch (e) {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: queryKeys.users,
+    queryFn: async () => unwrapUsers(await userApi.list()),
+  });
 
-  useEffect(() => {
-    fetch();
-  }, []);
+  const banMutation = useMutation({
+    mutationFn: ({ userId, isBanned }: { userId: string; isBanned: boolean }) =>
+      isBanned ? userApi.unban(userId) : userApi.ban(userId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users }),
+  });
 
-  const toggleBan = async (u: any) => {
-    try {
-      if (u.isBanned) {
-        await userManagementApi.unbanUser(u._id);
-      } else {
-        await userManagementApi.banUser({ userId: u._id });
-      }
-      await fetch();
-    } catch (e) {}
-  };
-
-  const changeRole = async (u: any, role: string) => {
-    try {
-      if (!u._id) return;
-      await userManagementApi.setUserRole({ userId: u._id, role });
-      await fetch();
-    } catch (e) {}
-  };
+  const roleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: UserRole }) =>
+      userApi.setRole(userId, role),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users }),
+  });
 
   return (
     <div>
@@ -47,28 +30,34 @@ export default function Users() {
         <h1 className="text-2xl font-bold">Users</h1>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="mt-4">Loading…</div>
       ) : (
         <div className="mt-4 space-y-3">
-          {users.map((u: any) => (
-            <div key={u._id || u.id} className="p-3 border rounded flex items-center justify-between">
+          {users.map((user: User) => (
+            <div key={user._id} className="flex items-center justify-between rounded border p-3">
               <div>
-                <div className="font-semibold">{u.name || u.email}</div>
-                <div className="text-sm text-muted">{u.email}</div>
+                <div className="font-semibold">{user.name || user.email}</div>
+                <div className="text-sm text-muted">{user.email}</div>
               </div>
               <div className="flex items-center gap-3">
                 <select
-                  value={u.role || 'customer'}
-                  onChange={(e) => changeRole(u, e.target.value)}
+                  value={user.role || "user"}
+                  onChange={(e) =>
+                    roleMutation.mutate({ userId: user._id, role: e.target.value as UserRole })
+                  }
                   className="select select-sm"
                 >
                   <option value="user">Customer</option>
                   <option value="seller">Seller</option>
                   <option value="super-admin">Super-admin</option>
                 </select>
-                <button className={`btn btn-sm ${u.isBanned ? "btn-success" : "btn-error"}`} onClick={() => toggleBan(u)}>
-                  {u.isBanned ? "Unban" : "Ban"}
+                <button
+                  type="button"
+                  className={`btn btn-sm ${user.isBanned ? "btn-success" : "btn-error"}`}
+                  onClick={() => banMutation.mutate({ userId: user._id, isBanned: Boolean(user.isBanned) })}
+                >
+                  {user.isBanned ? "Unban" : "Ban"}
                 </button>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
-import axios from "./shared";
+import { userApi } from "./lib/api";
 import Dashboard from "./pages/Dashboard";
 import BuyerHome from "./pages/BuyerHome";
 import SellerHome from "./pages/SellerHome";
@@ -12,7 +12,6 @@ import Login from "./pages/Login";
 import OrderDetail from "./pages/OrderDetail";
 import Shops from "./pages/Shops";
 import Banner from "./pages/Banner";
-import Seller from "./pages/Seller";
 import Reviews from "./pages/Reviews";
 import Settings from "./pages/Settings";
 import Sidebar from "./components/Sidebar";
@@ -40,11 +39,11 @@ export default function App() {
       return;
     }
 
-    axios
-      .get("/user/profile")
+    userApi
+      .profile()
       .then((res) => {
         if (!alive) return;
-        const fetchedRole = (res.data?.user?.role || "buyer") as RoleView;
+        const fetchedRole = (res.user?.role || "buyer") as RoleView;
         setProfileRole(fetchedRole);
         setViewerMode(fetchedRole === "super-admin" ? "super-admin" : "buyer");
       })
