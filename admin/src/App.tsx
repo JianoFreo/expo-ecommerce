@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Users from "./pages/Users";
@@ -17,14 +18,48 @@ export default function App() {
         <main className="flex-1 p-6">
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/orders" element={<Orders />} />
+            <Route
+              path="/dashboard"
+              element={
+                <RequireAuth>
+                  <Dashboard />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/products"
+              element={
+                <RequireAuth>
+                  <Products />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <RequireAuth>
+                  <Users />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <RequireAuth>
+                  <Orders />
+                </RequireAuth>
+              }
+            />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>
       </div>
     </div>
   );
+}
+
+function RequireAuth({ children }: { children: JSX.Element }) {
+  const { isSignedIn } = useAuth();
+  if (!isSignedIn) return <Navigate to="/login" replace />;
+  return children;
 }
