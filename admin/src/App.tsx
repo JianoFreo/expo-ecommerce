@@ -14,6 +14,7 @@ import Shops from "./pages/Shops";
 import Banner from "./pages/Banner";
 import Seller from "./pages/Seller";
 import Reviews from "./pages/Reviews";
+import Settings from "./pages/Settings";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import PageLoader from "./components/PageLoader";
@@ -161,6 +162,14 @@ export default function App() {
               element={
                 <RequireAuth requireAdmin={true} allowSeller={false} currentRole={currentRole}>
                   <Reviews />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <RequireAuth requireAdmin={true} allowSeller={false} currentRole={currentRole}>
+                  <Settings />
                 </RequireAuth>
               }
             />

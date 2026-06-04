@@ -30,6 +30,7 @@ export default function Sidebar({ role }: { role: RoleView }) {
         {showAdminView ? <LinkItem to="/shops">Shops</LinkItem> : null}
         {showAdminView ? <LinkItem to="/banner">Banner</LinkItem> : null}
         {showAdminView ? <LinkItem to="/reviews">Reviews</LinkItem> : null}
+        {showAdminView ? <LinkItem to="/settings">Settings</LinkItem> : null}
       </nav>
     </aside>
   );
