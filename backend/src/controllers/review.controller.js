@@ -120,3 +120,30 @@ export async function deleteReview(req, res) {
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
+// Admin-only: delete any review (used by admin moderation UI)
+export async function deleteReviewAdmin(req, res) {
+    try {
+        const { reviewId } = req.params;
+        const review = await Review.findById(reviewId);
+        if (!review) {
+            return res.status(404).json({ error: "Review not found" });
+        }
+
+        const productId = review.productId;
+        await Review.findByIdAndDelete(reviewId);
+
+        // update product rating
+        const reviews = await Review.find({ productId });
+        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        await Product.findByIdAndUpdate(productId, {
+            averageRating: reviews.length > 0 ? totalRating / reviews.length : 0,
+            totalReviews: reviews.length,
+        });
+
+        res.status(200).json({ message: "Review deleted successfully by admin" });
+    } catch (error) {
+        console.error("Error in deleteReviewAdmin controller:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}

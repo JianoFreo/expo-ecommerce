@@ -30,7 +30,7 @@ export default function Reviews() {
   const deleteReview = async (id: string) => {
     if (!confirm("Delete this review?")) return;
     try {
-      await axios.delete(`/reviews/${id}`);
+      await axios.delete(`/reviews/admin/${id}`);
       // optimistic remove
       setReviews((r) => {
         const copy = { ...r };
