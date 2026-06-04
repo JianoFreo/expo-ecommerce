@@ -1,137 +1,275 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "../shared";
 import type { Product } from "../shared/types";
 
+type ProductForm = {
+  name: string;
+  price: string;
+  description: string;
+  stock: string;
+  category: string;
+  images: Array<{ file?: File; preview: string; name: string }>;
+};
+
+const emptyForm: ProductForm = {
+  name: "",
+  price: "",
+  description: "",
+  stock: "1",
+  category: "General",
+  images: [],
+};
+
+function money(value: number | string | undefined) {
+  const numeric = typeof value === "number" ? value : Number(value || 0);
+  return `$${numeric.toFixed(2)}`;
+}
+
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState<{ name: string; price: string; description: string; images: Array<any> }>({ name: "", price: "", description: "", images: [] });
+  const [form, setForm] = useState<ProductForm>(emptyForm);
+  const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
 
-  const fetch = async () => {
+  const loadProducts = async () => {
     setLoading(true);
     try {
       const res = await axios.get("/products");
-      setProducts(res.data || []);
-    } catch (e) {
-      // ignore
+      setProducts(Array.isArray(res.data) ? res.data : res.data?.products || []);
+    } catch (error) {
+      setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetch();
+    loadProducts();
   }, []);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((product) => {
+      if (product.category) set.add(product.category);
+    });
+    return ["All", ...Array.from(set)];
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesCategory = activeCategory === "All" || product.category === activeCategory;
+      const haystack = `${product.name} ${product.description || ""} ${product.category || ""}`.toLowerCase();
+      const matchesQuery = !query.trim() || haystack.includes(query.toLowerCase());
+      return matchesCategory && matchesQuery;
+    });
+  }, [products, query, activeCategory]);
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", price: "", description: "", images: [] });
+    setForm(emptyForm);
   };
 
-  const openEdit = (p: Product) => {
-    setEditing(p);
-    setForm({ name: p.name, price: String(p.price), description: p.description || "" });
+  const openEdit = (product: Product) => {
+    setEditing(product);
+    setForm({
+      name: product.name,
+      price: String(product.price ?? ""),
+      description: product.description || "",
+      stock: String(product.stock ?? 1),
+      category: product.category || "General",
+      images: (product.images || []).slice(0, 3).map((image, index) => ({ preview: image, name: `${product.name}-${index + 1}` })),
+    });
   };
 
-  const submit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const onFilesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []).slice(0, 3);
+    if (!files.length) return;
+
+    const nextImages = files.map((file) => ({ file, preview: URL.createObjectURL(file), name: file.name }));
+    setForm((current) => ({
+      ...current,
+      images: nextImages,
+    }));
+  };
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+
     try {
       const fd = new FormData();
       fd.append("name", form.name);
-      fd.append("price", String(Number(form.price)));
+      fd.append("price", form.price);
       fd.append("description", form.description);
-      // append files if provided
-      form.images?.forEach((img: any, idx: number) => {
-        if (img.file) {
-          fd.append("images", img.file, img.name || img.file.name);
+      fd.append("stock", form.stock);
+      fd.append("category", form.category);
+      form.images.forEach((image) => {
+        if (image.file) {
+          fd.append("images", image.file, image.name || image.file.name);
         }
       });
 
       if (editing) {
-        await axios.put(`/products/${editing.id}`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+        await axios.put(`/products/${editing.id || editing._id}`, fd, { headers: { "Content-Type": "multipart/form-data" } });
       } else {
-        await axios.post(`/products`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+        await axios.post("/products", fd, { headers: { "Content-Type": "multipart/form-data" } });
       }
-      await fetch();
+
       setEditing(null);
-      setForm({ name: "", price: "", description: "", images: [] });
-    } catch (err) {
-      console.error(err);
+      setForm(emptyForm);
+      await loadProducts();
+    } catch (error) {
+      console.error(error);
+      alert("Could not save product");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const remove = async (id: string) => {
-    if (!confirm("Delete product?")) return;
+  const remove = async (product: Product) => {
+    const id = product.id || product._id;
+    if (!id) return;
+    if (!confirm("Delete this product?")) return;
+
     try {
       await axios.delete(`/products/${id}`);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-    } catch (e) {
-      // ignore
+      setProducts((current) => current.filter((item) => (item.id || item._id) !== id));
+    } catch (error) {
+      alert("Could not delete product");
     }
-  };
-
-  const onFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const arr = Array.from(files).slice(0, 3).map((f) => ({ file: f, preview: URL.createObjectURL(f), name: f.name, type: f.type }));
-    setForm((s) => ({ ...s, images: [...(s.images || []).slice(0, 3 - arr.length), ...arr] }));
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Products</h1>
-        <div>
-          <button className="btn btn-primary" onClick={openCreate}>
-            Create Product
+    <div className="space-y-6">
+      <section className="rounded-[28px] bg-gradient-to-br from-[#ff6b6b] via-[#ff8f4c] to-[#ffb347] p-6 text-white shadow-[0_20px_60px_rgba(255,120,64,0.28)]">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/80">Catalog</p>
+            <h1 className="mt-2 text-3xl font-black leading-tight">Products</h1>
+            <p className="mt-2 max-w-xl text-sm text-white/85">Manage inventory, prices, and product images from a cleaner mobile-style interface.</p>
+          </div>
+          <button onClick={openCreate} className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-black/10 active:scale-[0.98]">
+            New Product
           </button>
         </div>
-      </div>
+      </section>
 
-      <form onSubmit={submit} className="mt-4 p-4 bg-base-200 rounded">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input value={form.name} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} placeholder="Name" className="input input-bordered w-full" />
-          <input value={form.price} onChange={(e) => setForm((s) => ({ ...s, price: e.target.value }))} placeholder="Price" className="input input-bordered w-full" />
-          <input value={form.description} onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))} placeholder="Description" className="input input-bordered w-full" />
+      <section className="rounded-[24px] border border-black/5 bg-white p-4 shadow-sm">
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search products"
+          className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-orange-400"
+        />
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+          {categories.map((category) => {
+            const active = activeCategory === category;
+            return (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${active ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"}`}
+              >
+                {category}
+              </button>
+            );
+          })}
         </div>
-        <div className="mt-3">
-          <label className="block mb-2">Images (max 3)</label>
-          <input type="file" accept="image/*" multiple onChange={onFilesChange} />
-          <div className="flex gap-2 mt-2">
-            {(form.images || []).map((img: any, idx: number) => (
-              <img key={idx} src={img.preview || img.uri} alt={img.name || idx} className="w-20 h-20 object-cover rounded" />
+      </section>
+
+      <form onSubmit={submit} className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">{editing ? "Edit Product" : "Create Product"}</h2>
+            <p className="text-sm text-slate-500">Add one to three images just like the mobile product form.</p>
+          </div>
+          {editing ? (
+            <button type="button" onClick={openCreate} className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
+              Reset
+            </button>
+          ) : null}
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="Product name" className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-orange-400" />
+          <input value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} placeholder="Price" className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-orange-400" />
+          <input value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} placeholder="Stock" className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-orange-400" />
+          <input value={form.category} onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))} placeholder="Category" className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-orange-400" />
+        </div>
+
+        <textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Description" className="mt-3 min-h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 outline-none focus:border-orange-400" />
+
+        <div className="mt-4">
+          <label className="text-sm font-semibold text-slate-700">Images</label>
+          <input type="file" accept="image/*" multiple onChange={onFilesChange} className="mt-2 block w-full text-sm" />
+          <div className="mt-3 flex gap-3 overflow-x-auto">
+            {form.images.map((image, index) => (
+              <img key={`${image.preview}-${index}`} src={image.preview} alt={image.name} className="h-24 w-24 rounded-2xl object-cover" />
             ))}
           </div>
         </div>
-        <div className="mt-3">
-          <button className="btn btn-success" type="submit">{editing ? "Save" : "Create"}</button>
-          {editing && (
-            <button type="button" className="btn ml-2" onClick={() => { setEditing(null); setForm({ name: "", price: "", description: "", images: [] }); }}>
+
+        <div className="mt-5 flex gap-3">
+          <button type="submit" disabled={saving} className="rounded-full bg-slate-900 px-5 py-3 text-sm font-bold text-white disabled:opacity-60">
+            {saving ? "Saving..." : editing ? "Update Product" : "Create Product"}
+          </button>
+          {editing ? (
+            <button type="button" onClick={openCreate} className="rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700">
               Cancel
             </button>
-          )}
+          ) : null}
         </div>
       </form>
 
-      <div className="mt-6">
+      <section className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-lg font-bold text-slate-900">Inventory</h2>
+          <span className="text-sm text-slate-500">{filteredProducts.length} items</span>
+        </div>
+
         {loading ? (
-          <div>Loading…</div>
-        ) : (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {products.map((p) => (
-              <div key={p.id} className="card p-4 shadow">
-                <h3 className="font-semibold">{p.name}</h3>
-                <p className="text-sm">${p.price}</p>
-                <div className="mt-3 flex gap-2">
-                  <button className="btn btn-sm" onClick={() => openEdit(p)}>Edit</button>
-                  <button className="btn btn-sm btn-error" onClick={() => remove(p.id)}>Delete</button>
-                </div>
-              </div>
-            ))}
+          <div className="rounded-[24px] border border-black/5 bg-white p-6 text-center text-slate-500 shadow-sm">Loading products...</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="rounded-[24px] border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500 shadow-sm">
+            No products found.
           </div>
+        ) : (
+          filteredProducts.map((product) => {
+            const id = product.id || product._id;
+            const firstImage = product.images?.[0];
+            return (
+              <article key={id} className="overflow-hidden rounded-[24px] border border-black/5 bg-white shadow-sm">
+                <div className="flex gap-4 p-4">
+                  <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
+                    {firstImage ? <img src={firstImage} alt={product.name} className="h-full w-full object-cover" /> : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="truncate text-base font-bold text-slate-900">{product.name}</h3>
+                        <p className="mt-1 text-sm text-slate-500">{product.category || "General"}</p>
+                      </div>
+                      <div className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700">{money(product.price)}</div>
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-sm text-slate-600">{product.description || "No description provided."}</p>
+                    <div className="mt-4 flex gap-2">
+                      <button type="button" onClick={() => openEdit(product)} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+                        Edit
+                      </button>
+                      <button type="button" onClick={() => remove(product)} className="rounded-full bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })
         )}
-      </div>
+      </section>
     </div>
   );
 }

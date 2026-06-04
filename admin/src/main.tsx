@@ -26,6 +26,17 @@ function AuthInitializer() {
 function Root() {
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || import.meta.env.VITE_CLERK_CLIENT_ID || (window as any).VITE_CLERK_PUBLISHABLE_KEY;
 
+  if (!publishableKey) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-base-100 text-base-content px-6 text-center">
+        <div>
+          <h1 className="text-2xl font-bold">Missing Clerk key</h1>
+          <p className="mt-2 text-sm opacity-70">Set VITE_CLERK_PUBLISHABLE_KEY for the admin app.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ClerkProvider publishableKey={publishableKey}>
       <AuthInitializer />

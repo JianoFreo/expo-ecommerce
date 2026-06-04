@@ -13,14 +13,21 @@ import Seller from "./pages/Seller";
 import Reviews from "./pages/Reviews";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
+import PageLoader from "./components/PageLoader";
 
 export default function App() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return <PageLoader />;
+  }
+
   return (
-    <div className="min-h-screen bg-base-100">
-      <Navbar />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6">
+    <div className="min-h-screen bg-[#f6f7fb] text-base-content">
+      {isSignedIn ? <Navbar /> : null}
+      <div className={isSignedIn ? "flex" : "flex min-h-screen"}>
+        {isSignedIn ? <Sidebar /> : null}
+        <main className={isSignedIn ? "flex-1 p-4 md:p-6" : "flex-1 p-0"}>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route
@@ -104,7 +111,8 @@ export default function App() {
 }
 
 function RequireAuth({ children }: { children: JSX.Element }) {
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) return <PageLoader />;
   if (!isSignedIn) return <Navigate to="/login" replace />;
   return children;
 }
