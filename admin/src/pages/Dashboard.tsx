@@ -75,17 +75,17 @@ export default function Dashboard() {
         ))}
       </section>
 
-      <section className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm">
+      <section className="rounded-[24px] border border-white/10 bg-[#111318] p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Revenue</h2>
-            <p className="text-sm text-slate-500">Latest platform earnings</p>
+            <h2 className="text-lg font-bold text-white">Revenue</h2>
+            <p className="text-sm text-white/60">Latest platform earnings</p>
           </div>
-          <div className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+          <div className="rounded-full bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-300">
             ${formattedRevenue}
           </div>
         </div>
-        <div className="mt-4 h-3 rounded-full bg-slate-100">
+        <div className="mt-4 h-3 rounded-full bg-white/10">
           <div className="h-3 rounded-full bg-gradient-to-r from-emerald-400 via-lime-400 to-amber-400" style={{ width: "72%" }} />
         </div>
       </section>
@@ -99,9 +99,9 @@ export default function Dashboard() {
         ))}
       </section>
 
-      <section className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900">Admin Notes</h2>
-        <div className="mt-4 space-y-3 text-sm text-slate-600">
+      <section className="rounded-[24px] border border-white/10 bg-[#111318] p-5 shadow-sm">
+        <h2 className="text-lg font-bold text-white">Admin Notes</h2>
+        <div className="mt-4 space-y-3 text-sm text-white/60">
           <p>Use the Products page for image uploads and edits.</p>
           <p>Use the Orders page to inspect order details and status changes.</p>
           <p>Use the Reviews page to moderate product reviews.</p>

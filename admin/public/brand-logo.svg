@@ -1,0 +1,12 @@
+<svg width="560" height="160" viewBox="0 0 560 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="560" height="160" rx="20" fill="#0B0D10"/>
+  <g transform="translate(22 20)">
+    <path d="M52 10C39 17 28 29 28 49C28 63 35 74 49 79C55 81 60 86 60 94C60 109 48 119 35 119C22 119 12 108 12 95C12 84 19 75 30 70" stroke="#1E5A36" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M45 21L95 2L80 52" stroke="#D2B48C" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M30 78C45 78 55 67 55 51C55 33 42 18 22 18" stroke="#1E5A36" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M56 48L89 15" stroke="#D2B48C" stroke-width="10" stroke-linecap="round"/>
+    <path d="M57 76C68 76 76 68 79 58" stroke="#1E5A36" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <text x="190" y="78" fill="#1E5A36" font-size="58" font-family="Arial, Helvetica, sans-serif" font-weight="700">JianoFreo</text>
+  <text x="190" y="120" fill="#D2B48C" font-size="28" font-family="Arial, Helvetica, sans-serif" font-weight="700" letter-spacing="8">MARKETPLACE</text>
+</svg>

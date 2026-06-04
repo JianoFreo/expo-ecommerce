@@ -19,13 +19,13 @@ export default function Sidebar({ role }: { role: RoleView }) {
   const showAdminView = role === "super-admin";
 
   return (
-    <aside className="hidden w-72 border-r border-black/5 bg-white px-4 py-5 md:block">
+    <aside className="hidden w-72 border-r border-white/10 bg-[#0f1115] px-4 py-5 md:block">
       <nav className="space-y-2">
         <LinkItem to="/buyer">Buyer Home</LinkItem>
         {showSellerView ? <LinkItem to="/seller">Seller Dashboard</LinkItem> : null}
-        <LinkItem to="/products">Products</LinkItem>
-        <LinkItem to="/orders">Orders</LinkItem>
-        {showAdminView ? <LinkItem to="/dashboard">Admin Dashboard</LinkItem> : null}
+        {showAdminView ? <LinkItem to="/dashboard">Super Admin</LinkItem> : null}
+        {showAdminView ? <LinkItem to="/products">Products</LinkItem> : null}
+        {showAdminView ? <LinkItem to="/orders">Orders</LinkItem> : null}
         {showAdminView ? <LinkItem to="/users">Users</LinkItem> : null}
         {showAdminView ? <LinkItem to="/shops">Shops</LinkItem> : null}
         {showAdminView ? <LinkItem to="/banner">Banner</LinkItem> : null}
