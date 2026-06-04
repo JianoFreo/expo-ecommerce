@@ -1,4 +1,14 @@
 {
-  "compilerOptions": {},
-  "extends": "expo/tsconfig.base"
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["DOM", "ES2020"],
+    "jsx": "react-jsx",
+    "moduleResolution": "Node",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "."
+  }
 }
