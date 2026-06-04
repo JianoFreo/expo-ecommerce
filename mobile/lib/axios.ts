@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 const rawApiBaseUrl =
   process.env.EXPO_PUBLIC_API_URL || "https://expo-ecommerce-5lbs.onrender.com/api";
 
-export const API_BASE_URL = rawApiBaseUrl.replace(
+const API_BASE_URL = rawApiBaseUrl.replace(
   /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/,
   Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000"
 );

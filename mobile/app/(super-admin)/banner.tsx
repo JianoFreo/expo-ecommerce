@@ -32,7 +32,7 @@ export default function SuperAdminBanner() {
     queryKey: ["admin-products", user?.id],
     queryFn: async () => {
       const res = await axiosInstance.get("/admin/products");
-      return (res.data?.products || []) as Product[];
+      return res.data as Product[];
     },
     enabled: !!user?.id,
   });
